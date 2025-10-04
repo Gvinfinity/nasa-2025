@@ -2,14 +2,16 @@ import React from "react";
 import { Button } from "../../components/index";
 import { useHome } from "./useHome";
 import { Sidebar } from "../../components/Sidebar/Sidebar";
+import Map from "../maps/Map";
 
 export const Home: React.FC = () => {
-  const { handleStoriesClick, handleSimulatorClick, handleGamesClick } =
+  // const { handleStoriesClick, handleSimulatorClick, handleGamesClick } =
     useHome();
 
   return (
     <Sidebar>
-      <div className="relative flex min-h-screen flex-col justify-center items-center m:py-12">
+      <Map />
+      {/* <div className="relative flex min-h-screen flex-col justify-center items-center m:py-12">
         <h1 className="text-center text-5xl">Shark Tracking Dashboard 🦈</h1>
         <div className="flex justify-center mt-10 gap-10">
           <Button
@@ -24,7 +26,7 @@ export const Home: React.FC = () => {
           />
           <Button onClick={handleGamesClick} text="Games" variant="tertiary" />
         </div>
-      </div>
+      </div> */}
     </Sidebar>
   );
 };

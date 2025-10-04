@@ -6,8 +6,8 @@ export const ImportanceOfSharks = () => {
   const navigate = useNavigate();
 
   const handleStoriesClick = useCallback(() => {
-    console.log("Stories button clicked");
-    navigate("/stories");
+    console.log("sharks-importance button clicked");
+    navigate("/sharks-importance");
   }, [navigate]);
 
   return (
