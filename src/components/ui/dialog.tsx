@@ -36,7 +36,7 @@ export const Dialog: React.FC<DialogProps> = ({
   const [answered, setAnswered] = React.useState<boolean | null>(null);
 
   React.useEffect(() => {
-    // reset selection when dialog opens
+    console.log(image);
     if (open) {
       setSelected(null);
       setAnswered(null);
@@ -68,12 +68,17 @@ export const Dialog: React.FC<DialogProps> = ({
           <X className="w-5 h-5 cursor-pointer" onClick={onClose} />
         </div>
         <div className="p-4">
-            <div>
-              {image && (
-                <div className="mb-3 flex justify-center">
-                  <img src={image} alt="dialog" className="max-w-full max-h-48 object-contain rounded" />
-                </div>
+          {/* two-column layout: image left, options right; stack vertically on small screens */}
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="md:w-1/3 flex items-center justify-center">
+              {image ? (
+                <img src={image} alt="dialog" className="max-w-full max-h-48 object-contain rounded" />
+              ) : (
+                <div className="w-full h-40 bg-white/5 rounded flex items-center justify-center text-sm text-white/60">No image</div>
               )}
+            </div>
+
+            <div className="md:w-2/3">
               <div className="space-y-2">
                 {options?.map((opt) => {
                   const correct = answered === true && opt === correctAnswer;
@@ -95,16 +100,17 @@ export const Dialog: React.FC<DialogProps> = ({
                   );
                 })}
               </div>
-            {answered !== null && (
-              <div className="mt-3">
-                {answered ? (
-                  <div className="text-sm text-green-200">Correct ✅</div>
-                ) : (
-                  <div className="text-sm text-red-200">Incorrect ❌</div>
-                )}
-              </div>
-            )}
+              {answered !== null && (
+                <div className="mt-3">
+                  {answered ? (
+                    <div className="text-sm text-green-200">Correct ✅</div>
+                  ) : (
+                    <div className="text-sm text-red-200">Incorrect ❌</div>
+                  )}
+                </div>
+              )}
             </div>
+          </div>
         </div>
         {footer && <div className="border-t px-4 py-3">{footer}</div>}
       </div>

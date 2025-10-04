@@ -99,6 +99,7 @@ export default function MapLatitude({
     questionText: string;
     options?: string[];
     answer?: string;
+    image?: string;
   } | null>(null);
 
   // dynamically build iconMapping from the imported flag image so IconLayer
@@ -324,7 +325,8 @@ export default function MapLatitude({
             transitionInterpolator: new FlyToInterpolator(),
           }));
           const q = obj.question;
-          setActiveQuestion({ questionText: q.question, options: q.options, answer: q.answer });
+          console.log(q);
+          setActiveQuestion({ questionText: q.question, options: q.options, answer: q.answer, image: q.image });
           setQuizDialogOpen(true);
         },
         // use the silent handler so the halo shows pointer cursor but does not create tooltip content
@@ -518,6 +520,7 @@ export default function MapLatitude({
         open={quizDialogOpen}
         onClose={() => setQuizDialogOpen(false)}
         title={activeQuestion?.questionText || "Question"}
+        image={activeQuestion?.image}
         options={activeQuestion?.options}
         correctAnswer={activeQuestion?.answer}
         onAnswer={(isCorrect, selected) => {

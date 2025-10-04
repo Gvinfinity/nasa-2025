@@ -20,13 +20,11 @@ export const Sidebar = ({ children }: SidebarProps) => {
 
   const injectedChildren = (children as any)
     ? React.Children.map(children as any, (child: any) =>
-        React.isValidElement(child)
-          ? React.cloneElement(child, { mapMode } as any)
-          : child
+        React.isValidElement(child) ? React.cloneElement(child, { mapMode } as any) : child
       )
     : children;
 
-  const [childrenSaved, setChildren] = useState(injectedChildren);
+  const [childrenSaved, setChildren] = useState<React.ReactNode | null>(null);
 
   return (
     <div className="flex">
@@ -60,7 +58,7 @@ export const Sidebar = ({ children }: SidebarProps) => {
 
       {/* Main content */}
       <div className="flex-1 bg-black min-h-screen">
-        <div className="w-full h-full">{childrenSaved}</div>
+  <div className="w-full h-full">{childrenSaved ?? injectedChildren}</div>
       </div>
     </div>
   );
