@@ -75,14 +75,14 @@ export const Sharkmap = () => {
                         index === i ? { ...option, selected: !option.selected } : option
                       )
                     );
-                  }}
-                  className={`cursor-pointer px-3 py-2 rounded-md transition-all flex items-center gap-2 border ${
+                    }}
+                    className={`cursor-pointer px-3 py-2 rounded-md transition-all flex items-center gap-2 border ${
                     opt.selected
-                      ? "bg-blue-600 border-blue-600 text-white font-semibold"
+                      ? "bg-blue-600/40 border-blue-500 text-white font-semibold"
                       : "bg-blue-900/30 border-blue-700/50 hover:bg-blue-800/50"
-                  }`}
-                >
-                  {opt.icon && <span className="text-lg">{opt.icon}</span>}
+                    }`}
+                  >
+                    {opt.icon && <span className="text-lg">{opt.icon}</span>}
                   <span className="text-sm">{opt.name}</span>
                   {opt.selected && (
                     <div className="ml-auto w-2 h-2 bg-white rounded-full"></div>

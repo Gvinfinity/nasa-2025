@@ -1,25 +1,29 @@
 import React from "react";
+import { motion } from "framer-motion";
 
-type ButtonProps = {
-  onClick: () => void;
-  text: string;
-  variant?: "primary" | "secondary" | "tertiary";
-};
+interface ButtonProps {
+  onClick?: () => void;
+  children: React.ReactNode;
+}
 
-export const Button: React.FC<ButtonProps> = ({ onClick, text, variant }) => {
-  const variantStyle = {
-    ["primary"]:
-      "bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 mr-2 rounded",
-    ["secondary"]:
-      "bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 mr-2 rounded",
-    ["tertiary"]:
-      "bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded",
-    ["default"]: "",
-  };
-
+export const Button: React.FC<ButtonProps> = ({ onClick, children }) => {
   return (
-    <button className={variantStyle[variant ?? "default"]} onClick={onClick}>
-      {text}
-    </button>
+    <motion.button
+      onClick={onClick}
+      className="px-8 py-3 rounded-full bg-blue-500/20 backdrop-blur-md border border-blue-400/40 text-blue-100 font-semibold text-lg hover:bg-blue-500/30 hover:scale-105 transition-all shadow-lg shadow-blue-900/40"
+      initial={{ opacity: 0.8, scale: 0.8 }}
+      animate={{
+        opacity: 1,
+        scale: [1, 1.05, 1],
+      }}
+      transition={{
+        duration: 1.8,
+        delay: 1,
+        repeat: Infinity,
+        repeatType: "mirror",
+      }}
+    >
+      {children}
+    </motion.button>
   );
 };

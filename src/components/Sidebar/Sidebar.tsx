@@ -1,11 +1,5 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import {
-  BookOpen,
-  Brain,
-  Layers,
-  Users,
-} from "lucide-react";
 import { Sharkmap } from "./components/Sharkmap";
 import { ImportanceOfSharks } from "./components/ImportanceOfSharks";
 import { WhichSharkAreYou } from "./components/WhichSharkAreYou";
@@ -18,22 +12,6 @@ interface SidebarProps {
 }
 
 export const Sidebar = ({ children }: SidebarProps) => {
-  const [openMenu, setOpenMenu] = useState<string | null>(null);
-
-  const subItemVariants = {
-    hidden: { opacity: 0, y: -10 },
-    visible: { opacity: 1, y: 0 },
-  };
-
-  const sharkMapOptions = [
-    "None",
-    "Temperature",
-    "Salinity",
-    "Ocean Topography",
-    "Ocean Currents",
-    "Biomass",
-    "Other Map Variants...",
-  ];
 
   return (
     <div className="flex">
@@ -57,7 +35,7 @@ export const Sidebar = ({ children }: SidebarProps) => {
       </aside>
 
       {/* Main content */}
-      <div className="flex-1 p-6 bg-slate-100 min-h-screen">
+      <div className="flex-1 bg-black min-h-screen">
         <h1 className="text-3xl font-bold text-blue-900">
           {children}
         </h1>

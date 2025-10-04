@@ -1,9 +1,22 @@
-
 import { BookOpen } from "lucide-react";
+import { useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 
-export const ImportanceOfSharks = () => (
-  <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-blue-800/40 cursor-pointer">
-    <BookOpen size={20} />
-    <span className="font-medium">Importance of Sharks</span>
-  </div>
-);
+export const ImportanceOfSharks = () => {
+  const navigate = useNavigate();
+
+  const handleStoriesClick = useCallback(() => {
+    console.log("Stories button clicked");
+    navigate("/stories");
+  }, [navigate]);
+
+  return (
+    <button
+      className="flex items-center gap-3 p-2 rounded-lg hover:bg-blue-800/40 cursor-pointer w-full text-left"
+      onClick={handleStoriesClick}
+    >
+      <BookOpen size={20} />
+      <span className="font-medium">Importance of Sharks</span>
+    </button>
+  );
+};
