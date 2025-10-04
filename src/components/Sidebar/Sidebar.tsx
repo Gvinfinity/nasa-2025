@@ -19,7 +19,9 @@ export const Sidebar = ({ children }: SidebarProps) => {
   // We'll clone children and inject `mapMode` so MapLatitude can read it as a prop.
   const injectedChildren = (children as any)
     ? React.Children.map(children as any, (child: any) =>
-        React.isValidElement(child) ? React.cloneElement(child, ({ mapMode } as any)) : child
+        React.isValidElement(child)
+          ? React.cloneElement(child, { mapMode } as any)
+          : child
       )
     : children;
 
@@ -36,17 +38,19 @@ export const Sidebar = ({ children }: SidebarProps) => {
           <MeetTheDevelopers />
         </nav>
 
-
-            <button
-              onClick={() => setMapMode((m) => (m === "research" ? "student" : "research"))}
-              className="absolute bottom-6 left-4 w-fit px-3 py-1 cursor-pointer rounded-lg bg-blue-800/70 hover:bg-blue-700/80 text-sm"
-            >
-              {mapMode === "research" ? "Student Mode" : "Research Mode"}
-            </button>
+        <button
+          onClick={() => {
+            console.log("Toggling map mode from", mapMode);
+            setMapMode((m) => (m === "research" ? "student" : "research"));
+          }}
+          className="absolute bottom-6 left-4 w-fit px-3 py-1 cursor-pointer rounded-lg bg-blue-800/70 hover:bg-blue-700/80 text-sm z-20"
+        >
+          {mapMode === "research" ? "Student Mode" : "Research Mode"}
+        </button>
 
         {/* Decorative background */}
         <motion.div
-          className="absolute bottom-0 left-0 w-full h-40 bg-blue-700/30 blur-3xl rounded-t-full"
+          className="absolute bottom-0 left-0 w-full h-40 bg-blue-700/30 blur-3xl rounded-t-full pointer-events-none"
           animate={{ y: [0, -10, 0], opacity: [0.5, 0.7, 0.5] }}
           transition={{ duration: 6, repeat: Infinity }}
         />

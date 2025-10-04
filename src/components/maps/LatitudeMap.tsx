@@ -86,7 +86,7 @@ export default function MapLatitude({
     }));
   }, [data]);
 
-  const { tooltip, makeHoverHandler, cursor } = useMapTooltip();
+  const { tooltip, makeHoverHandler, makeHoverHandlerSilent, cursor } = useMapTooltip();
 
   // dialog state for quiz questions
   const [quizDialogOpen, setQuizDialogOpen] = useState(false);
@@ -283,19 +283,19 @@ export default function MapLatitude({
       typeof quizData === "string" ? [] : (quizData as QuizPoint[])
     ).map((q) => ({ position: [q[0], q[1]], question: q[2] }));
 
-    // halo beneath flags: non-pickable pulsing scatter layer
+    // halo beneath flags: make this the clickable/pickable pulsing area
     layers.push(
       new ScatterplotLayer<any>({
         id: "quiz-halo",
         data: quizPointsData,
-        pickable: false,
+        pickable: true,
         getPosition: (d: any) => d.position,
         // halo size derived from icon base size and pulse, scaled by zoom
         getRadius: (_d: any) => {
           const width = (iconMapping?.flag?.width as number) ?? 64;
           const baseIcon = Math.max(16, Math.floor(width / 0.75));
-          // make halo smaller: 0.6x of icon size, minimum 6px
-          const baseHalo = Math.max(2, Math.floor(baseIcon * 0.2));
+          // make halo larger than icon to be an easier target
+          const baseHalo = Math.max(6, Math.floor(baseIcon * 0.4));
           // pulse independent of zoom
           const radius = Math.round(baseHalo * (1 + pulse * 0.12));
           return radius;
@@ -306,6 +306,25 @@ export default function MapLatitude({
           return [255, 200, 0, 40];
         },
         opacity: 1,
+        onClick: (info: any) => {
+          const obj = info?.object;
+          if (!obj) return;
+          const lon = info.coordinate?.[0] ?? obj.position?.[0] ?? NaN;
+          const lat = info.coordinate?.[1] ?? obj.position?.[1] ?? NaN;
+          setViewState((prev) => ({
+            ...prev,
+            longitude: lon,
+            latitude: lat,
+            zoom: Math.max((prev.zoom as number) ?? 1, 6),
+            transitionDuration: 500,
+            transitionInterpolator: new FlyToInterpolator(),
+          }));
+          const q = obj.question;
+          setActiveQuestion({ questionText: q.question, options: q.options, answer: q.answer });
+          setQuizDialogOpen(true);
+        },
+        // use the silent handler so the halo shows pointer cursor but does not create tooltip content
+        onHover: makeHoverHandlerSilent(),
       })
     );
 
@@ -313,7 +332,7 @@ export default function MapLatitude({
       new IconLayer<any>({
         id: "quiz-flags",
         data: quizPointsData,
-        pickable: true,
+        pickable: false,
         // use the single-image atlas
         iconAtlas: flagIcon as any,
         // use dynamic mapping when available

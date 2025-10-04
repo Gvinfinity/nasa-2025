@@ -14,8 +14,12 @@ export type TooltipData = {
  */
 export function useMapTooltip() {
   const [tooltip, setTooltip] = useState<TooltipData>(null);
+  const [pointerActive, setPointerActive] = useState(false);
 
-  const clear = useCallback(() => setTooltip(null), []);
+  const clear = useCallback(() => {
+    setTooltip(null);
+    setPointerActive(false);
+  }, []);
 
   const makeHoverHandler = useCallback((mapObjectToData: (obj: unknown, info: unknown) => Record<string, unknown>) => {
     return (info: unknown) => {
@@ -28,17 +32,33 @@ export function useMapTooltip() {
         const x = pick.x ?? 0;
         const y = pick.y ?? 0;
         setTooltip({ x, y, ...mapped });
+        setPointerActive(true);
       } else {
         setTooltip(null);
+        setPointerActive(false);
       }
       // return false to match DeckGL pick handlers
       return false;
     };
   }, []);
 
-  const cursor = tooltip ? 'pointer' : 'default';
+  // Hover handler that only toggles cursor/pointer active state without creating tooltip content
+  const makeHoverHandlerSilent = useCallback(() => {
+    return (info: unknown) => {
+      type PickInfo = { object?: unknown };
+      const pick = info as PickInfo;
+      if (pick && pick.object) {
+        setPointerActive(true);
+      } else {
+        setPointerActive(false);
+      }
+      return false;
+    };
+  }, []);
 
-  return { tooltip, makeHoverHandler, clear, cursor } as const;
+  const cursor = pointerActive || tooltip ? 'pointer' : 'default';
+
+  return { tooltip, makeHoverHandler, makeHoverHandlerSilent, clear, cursor } as const;
 }
 
 export default useMapTooltip;
