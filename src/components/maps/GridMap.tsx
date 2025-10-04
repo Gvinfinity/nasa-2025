@@ -17,6 +17,7 @@ import useMapTooltip from "./utils/useMapTooltip";
 import { colorForValue, VIEWS, PALETTES } from "./utils/palettes";
 import { exampleGridList, ROWS, COLS, BBOX } from "../../mock/mockMapData";
 import { usePalette } from "../../contexts/PaletteContext";
+import MapBar from "./utils/mapBar";
 
 // start zoomed out so the user sees most of the planet initially
 const INITIAL_VIEW_STATE = {
@@ -42,6 +43,7 @@ export default function GridMap({
 }: GridMapProps) {
   const { selectedView, setSelectedView } = usePalette();
   const tuples: DataPoint[] = gridListToTuples(gridList, cols, rows, bbox);
+  const [enabled, setEnabled] = useState(false);
 
   const [viewState, setViewState] = useState<
     MapViewState & { transitionDuration?: number; transitionInterpolator?: any }
@@ -120,46 +122,15 @@ export default function GridMap({
   const cursorStyle = cursor;
 
   return (
-    <div
-      style={{
-        position: "relative",
-        width: "100%",
-        minHeight: "100vh",
-        height: "100%",
-        cursor: cursorStyle,
-      }}
-    >
-      <div
-        style={{
-          position: "absolute",
-          left: 12,
-          top: 12,
-          zIndex: "1001",
-          pointerEvents: "auto",
-        }}
-      >
-        <label
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            background: "rgba(255,255,255,0.9)",
-            padding: "6px 8px",
-            borderRadius: 6,
-          }}
-        >
-          <select
-            value={selectedView}
-            onChange={(e) => setSelectedView(e.target.value)}
-          >
-            {VIEWS.map((v) => (
-              <option key={v} value={v}>
-                {v}
-              </option>
-            ))}
+    <div style={{ position: 'relative', width: '100%', minHeight: '100vh', height: '100%', cursor: cursorStyle }}>
+    <div style={{ position: 'absolute', left: 12, bottom: 12, zIndex: '1001', pointerEvents: 'auto' }}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.9)', padding: '6px 8px', borderRadius: 6 }}>
+          <select value={selectedView} onChange={e => setSelectedView(e.target.value)}>
+            {VIEWS.map((v: string) => <option key={v} value={v}>{v}</option>)}
           </select>
         </label>
       </div>
+      <MapBar enabled={enabled} setEnabled={setEnabled} />
 
       <DeckGL
         style={{

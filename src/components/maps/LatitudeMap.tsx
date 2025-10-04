@@ -14,7 +14,7 @@ import useMapTooltip from './utils/useMapTooltip';
 import { usePalette } from '../../contexts/PaletteContext';
 import { FlyToInterpolator } from '@deck.gl/core';
 import type { MapViewState } from '@deck.gl/core';
-import { Button } from "../../components/ui/button";
+import MapBar from './utils/mapBar';
 
 const DATA_URL =
   'https://raw.githubusercontent.com/visgl/deck.gl-data/master/examples/screen-grid/uber-pickup-locations.json';
@@ -40,28 +40,7 @@ interface LatitudeMapProps {
   mapStyle?: string;
 }
 
-function MapGradient() {
-  const { selectedView } = usePalette();
-  const palette = PALETTES[selectedView] || PALETTES.default;
-  const stops = palette.map((c, i) => {
-    const pct = Math.round((i / (palette.length - 1)) * 100);
-    return `rgb(${c[0]}, ${c[1]}, ${c[2]}) ${pct}%`;
-  });
-  const gradient = `linear-gradient(90deg, ${stops.join(", ")})`;
 
-  return (
-    <div className="ml-2 w-full">
-      <div className="h-4 rounded-sm" style={{ backgroundImage: gradient }} />
-      <div className="w-full font-medium flex flex-row justify-between h-fit">
-        {[0, 50, 100].map((pct) => (
-          <span key={pct} className="text-md">
-            {pct}
-          </span>
-        ))}
-      </div>
-    </div>
-  );
-}
 
 export default function MapLatitude({
   data = DATA_URL,
@@ -172,29 +151,7 @@ export default function MapLatitude({
           </select>
         </label>
       </div>
-      <div className="w-full absolute top-0 bg-zinc-300 text-black h-12 z-[1001]">
-        <div className="grid grid-cols-[minmax(220px,1fr)_1fr_auto] items-center gap-2 h-full">
-          <div className="flex items-center">
-            <MapGradient />
-          </div>
-          <div className="text-center">
-            <p className="text-lg font-medium" style={{ fontSize: "1.125rem" }}>
-              Probability of Sharks (%)
-            </p>
-          </div>
-          <div className="flex items-center justify-end">
-            <Button
-              className={`text-lg text-zinc-100 mr-2 ${
-                enabled ? "bg-cyan-700" : "bg-red-700"
-              }`}
-              style={{ fontSize: "1.125rem" }}
-              onClick={() => setEnabled(!enabled)}
-            >
-              {enabled ? "Enabled" : "Disabled"}
-            </Button>
-          </div>
-        </div>
-      </div>
+      <MapBar enabled={enabled} setEnabled={setEnabled} />
       <DeckGL style={{ zIndex: '0' }} viewState={viewState} controller={true} onViewStateChange={(e: any) => setViewState(e.viewState)} layers={layers}>
         <Map reuseMaps mapStyle={mapStyle} mapLib={maplibregl as any} />
       </DeckGL>
