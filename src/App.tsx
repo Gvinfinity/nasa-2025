@@ -1,7 +1,7 @@
 // import reactLogo from "./assets/react.svg";
 // import viteLogo from "/vite.svg";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { Home, Stories } from "../src/pages/";
+import { Home, Stories, GridMap } from "../src/pages/";
 import MapOceans from "./pages/map/temperature/Map";
 
 function App() {
@@ -12,6 +12,7 @@ function App() {
           <Route index element={<Home />} />
           <Route path="stories" element={<Stories />} />
           <Route path="map/oceans" element={<MapOceans />} />
+          <Route path="map/grid" element={<GridMap />} />
         </Route>
       </Routes>
     </BrowserRouter>
