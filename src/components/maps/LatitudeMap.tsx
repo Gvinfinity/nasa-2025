@@ -7,7 +7,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import { Map } from "react-map-gl/maplibre";
 import { DeckGL } from "@deck.gl/react";
 import { HeatmapLayer } from "@deck.gl/aggregation-layers";
-import { ScatterplotLayer, IconLayer } from "@deck.gl/layers";
+import { ScatterplotLayer, IconLayer, BitmapLayer } from "@deck.gl/layers";
 import { useCallback, useMemo, useState, useEffect } from "react";
 import { colorForValue, VIEWS, PALETTES } from "./utils/palettes";
 import useMapTooltip from "./utils/useMapTooltip";
@@ -16,6 +16,7 @@ import { FlyToInterpolator } from "@deck.gl/core";
 import type { MapViewState } from "@deck.gl/core";
 import MapBar from "./utils/mapBar";
 import { mockQuizPoints, QuizPoint } from "../../data/mock/mockQuestionsData";
+import { mockAerosol, ROWS as A_ROWS, COLS as A_COLS, BBOX as A_BBOX } from "../../data/mock/mockAerosol";
 import flagIcon from "../../assets/flag_research.png";
 import Dialog from "../ui/dialog";
 
@@ -98,6 +99,44 @@ export default function MapLatitude({
     raf = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(raf);
   }, []);
+
+  // generate the aerosol canvas from a mock 2D grid (mockAerosol)
+  const aerosolCanvas = useMemo(() => {
+    if (typeof window === "undefined") return null;
+    const cols = A_COLS;
+    const rows = A_ROWS;
+    // canvas pixel resolution (one canvas pixel per data cell or scaled)
+    const scale = 4; // upscale for smoother appearance
+    const w = cols * scale;
+    const h = rows * scale;
+    const c = document.createElement("canvas");
+    c.width = w;
+    c.height = h;
+    const ctx = c.getContext("2d");
+    if (!ctx) return c;
+
+    const img = ctx.createImageData(w, h);
+    for (let ry = 0; ry < rows; ry++) {
+      for (let rx = 0; rx < cols; rx++) {
+        const t = Math.max(0, Math.min(1, mockAerosol[ry]?.[rx] ?? 0));
+        const [r, g, b] = colorForValue(selectedView, t);
+        for (let sy = 0; sy < scale; sy++) {
+          for (let sx = 0; sx < scale; sx++) {
+            const x = rx * scale + sx;
+            const y = ry * scale + sy;
+            const idx = (y * w + x) * 4;
+            img.data[idx + 0] = Math.round(r);
+            img.data[idx + 1] = Math.round(g);
+            img.data[idx + 2] = Math.round(b);
+            img.data[idx + 3] = Math.round(200 * t);
+          }
+        }
+      }
+    }
+
+    ctx.putImageData(img, 0, 0);
+    return c;
+  }, [selectedView]);
   useEffect(() => {
     if (!flagIcon) return;
     const img = new Image();
@@ -208,15 +247,29 @@ export default function MapLatitude({
     }),
   ];
 
+  // If enabled, add aerosol BitmapLayer beneath the heatmap
+  if (enabled && aerosolCanvas) {
+    // geographic bounds: use the mock aerosol bbox
+    layers.unshift(
+      new BitmapLayer({
+        id: "aerosol-raster",
+        image: aerosolCanvas,
+        // cast to any to avoid strict tuple typing issues
+        bounds: (A_BBOX as any),
+        opacity: 0.45,
+        desaturate: 0.2,
+        pickable: false,
+      })
+    );
+  }
+
   // show quiz flags when enabled (student mode) — explicit student mapMode
-  if (enabled || mapMode === "student") {
+  if (mapMode === "student") {
     const quizPointsData = (
       typeof quizData === "string" ? [] : (quizData as QuizPoint[])
     ).map((q) => ({ position: [q[0], q[1]], question: q[2] }));
 
-    layers.push(
-      // halo beneath flags: non-pickable pulsing scatter layer
-    );
+    // halo beneath flags: non-pickable pulsing scatter layer
     layers.push(
       new ScatterplotLayer<any>({
         id: "quiz-halo",
