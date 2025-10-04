@@ -9,12 +9,11 @@ import { DeckGL } from '@deck.gl/react';
 import { HeatmapLayer } from '@deck.gl/aggregation-layers';
 import { ScatterplotLayer } from '@deck.gl/layers';
 import { useCallback, useMemo, useState } from 'react';
-import { colorForValue, VIEWS, PALETTES } from './utils/palettes';
-import useMapTooltip from './utils/useMapTooltip';
-import { usePalette } from '../../contexts/PaletteContext';
+import { colorForValue, VIEWS, PALETTES } from '../../../components/maps/utils/palettes';
+import useMapTooltip from '../../../components/maps/utils/useMapTooltip';
+import { usePalette } from '../../../contexts/PaletteContext';
 import { FlyToInterpolator } from '@deck.gl/core';
 import type { MapViewState } from '@deck.gl/core';
-import { Button } from "../../components/ui/button";
 
 const DATA_URL =
   'https://raw.githubusercontent.com/visgl/deck.gl-data/master/examples/screen-grid/uber-pickup-locations.json';
@@ -40,29 +39,6 @@ interface LatitudeMapProps {
   mapStyle?: string;
 }
 
-function MapGradient() {
-  const { selectedView } = usePalette();
-  const palette = PALETTES[selectedView] || PALETTES.default;
-  const stops = palette.map((c, i) => {
-    const pct = Math.round((i / (palette.length - 1)) * 100);
-    return `rgb(${c[0]}, ${c[1]}, ${c[2]}) ${pct}%`;
-  });
-  const gradient = `linear-gradient(90deg, ${stops.join(", ")})`;
-
-  return (
-    <div className="ml-2 w-full">
-      <div className="h-4 rounded-sm" style={{ backgroundImage: gradient }} />
-      <div className="w-full font-medium flex flex-row justify-between h-fit">
-        {[0, 50, 100].map((pct) => (
-          <span key={pct} className="text-md">
-            {pct}
-          </span>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 export default function MapLatitude({
   data = DATA_URL,
   intensity = 1,
@@ -73,7 +49,6 @@ export default function MapLatitude({
 
   const [viewState, setViewState] = useState<
     MapViewState & { transitionDuration?: number; transitionInterpolator?: any }>(INITIAL_VIEW_STATE);
-  const [enabled, setEnabled] = useState(false);
 
   const { selectedView, setSelectedView } = usePalette();
 
@@ -165,35 +140,12 @@ export default function MapLatitude({
 
   return (
     <div style={{ position: 'relative', width: '100%', minHeight: '100vh', height: '100%', cursor: cursorStyle }}>
-      <div style={{ position: 'absolute', left: 12, bottom: 12, zIndex: '1001', pointerEvents: 'auto' }}>
+      <div style={{ position: 'absolute', left: 12, top: 12, zIndex: '1001', pointerEvents: 'auto' }}>
         <label style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.9)', padding: '6px 8px', borderRadius: 6 }}>
           <select value={selectedView} onChange={e => setSelectedView(e.target.value)}>
             {VIEWS.map((v: string) => <option key={v} value={v}>{v}</option>)}
           </select>
         </label>
-      </div>
-      <div className="w-full absolute top-0 bg-zinc-300 text-black h-12 z-[1001]">
-        <div className="grid grid-cols-[minmax(220px,1fr)_1fr_auto] items-center gap-2 h-full">
-          <div className="flex items-center">
-            <MapGradient />
-          </div>
-          <div className="text-center">
-            <p className="text-lg font-medium" style={{ fontSize: "1.125rem" }}>
-              Probability of Sharks (%)
-            </p>
-          </div>
-          <div className="flex items-center justify-end">
-            <Button
-              className={`text-lg text-zinc-100 mr-2 ${
-                enabled ? "bg-cyan-700" : "bg-red-700"
-              }`}
-              style={{ fontSize: "1.125rem" }}
-              onClick={() => setEnabled(!enabled)}
-            >
-              {enabled ? "Enabled" : "Disabled"}
-            </Button>
-          </div>
-        </div>
       </div>
       <DeckGL style={{ zIndex: '0' }} viewState={viewState} controller={true} onViewStateChange={(e: any) => setViewState(e.viewState)} layers={layers}>
         <Map reuseMaps mapStyle={mapStyle} mapLib={maplibregl as any} />

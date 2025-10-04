@@ -2,7 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Ensure the app root fills the viewport so maps set to 100% height are visible */
 html, body, #root {
   height: 100%;
   margin: 0;
