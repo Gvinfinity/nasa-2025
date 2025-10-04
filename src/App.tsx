@@ -12,7 +12,6 @@ function App() {
         <Routes>
           <Route path="/">
             <Route index element={<Home />} />
-            <Route path="sharks-importance" element={<SharksImportance />} />
             <Route path="cover" element={<Cover />} />
           </Route>
         </Routes>

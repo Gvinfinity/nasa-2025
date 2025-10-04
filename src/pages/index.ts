@@ -1,2 +1,2 @@
 export { Home } from "./Home/Home";
-export { SharksImportance } from "./SharksImportance/SharksImportance";
+export { SharksImportance } from "../components/Sidebar/components/KnowledgeHub/Stories/SharksImportance/SharksImportance";

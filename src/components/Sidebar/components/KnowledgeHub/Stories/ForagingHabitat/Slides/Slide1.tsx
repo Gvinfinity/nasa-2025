@@ -1,8 +1,8 @@
 import React from "react";
 import { motion } from "framer-motion";
-import Background from "../../../components/Background";
-import { Button } from "../../../components/Button";
-import { useSliderProvider } from "../../../contexts/SliderContext";
+import Background from "../../../../../../Background";
+import { Button } from "../../../../../../Button";
+import { useSliderProvider } from "../../../../../../../contexts/SliderContext";
 
 const Slide1: React.FC = () => {
   const { nextSlide } = useSliderProvider();
