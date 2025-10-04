@@ -7,7 +7,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import { Map } from "react-map-gl/maplibre";
 import { DeckGL } from "@deck.gl/react";
 import { HeatmapLayer } from "@deck.gl/aggregation-layers";
-import { ScatterplotLayer, IconLayer, BitmapLayer } from "@deck.gl/layers";
+import { ScatterplotLayer, IconLayer, PolygonLayer } from "@deck.gl/layers";
 import { useCallback, useMemo, useState, useEffect } from "react";
 import { colorForValue, PALETTES } from "./utils/palettes";
 import useMapTooltip from "./utils/useMapTooltip";
@@ -121,42 +121,34 @@ export default function MapLatitude({
   }, []);
 
   // generate the aerosol canvas from a mock 2D grid (mockAerosol)
-  const aerosolCanvas = useMemo(() => {
-    if (typeof window === "undefined") return null;
+  // build polygon tiles from mockAerosol grid and color them using inverted palette colors
+  const aerosolPolygons = useMemo(() => {
+    if (typeof window === "undefined") return [] as any[];
     const cols = A_COLS;
     const rows = A_ROWS;
-    // canvas pixel resolution (one canvas pixel per data cell or scaled)
-    const scale = 4; // upscale for smoother appearance
-    const w = cols * scale;
-    const h = rows * scale;
-    const c = document.createElement("canvas");
-    c.width = w;
-    c.height = h;
-    const ctx = c.getContext("2d");
-    if (!ctx) return c;
-
-    const img = ctx.createImageData(w, h);
+    const [minLon, minLat, maxLon, maxLat] = A_BBOX as any;
+    const cellW = (maxLon - minLon) / cols;
+    const cellH = (maxLat - minLat) / rows;
+    const out: Array<{ polygon: number[][]; value: number }> = [];
     for (let ry = 0; ry < rows; ry++) {
       for (let rx = 0; rx < cols; rx++) {
         const t = Math.max(0, Math.min(1, mockAerosol[ry]?.[rx] ?? 0));
-  const [r, g, b] = colorForValue(activePalette, t);
-        for (let sy = 0; sy < scale; sy++) {
-          for (let sx = 0; sx < scale; sx++) {
-            const x = rx * scale + sx;
-            const y = ry * scale + sy;
-            const idx = (y * w + x) * 4;
-            img.data[idx + 0] = Math.round(r);
-            img.data[idx + 1] = Math.round(g);
-            img.data[idx + 2] = Math.round(b);
-            img.data[idx + 3] = Math.round(200 * t);
-          }
-        }
+        const lon0 = minLon + rx * cellW;
+        const lon1 = lon0 + cellW;
+        // row 0 at top (maxLat)
+        const lat1 = maxLat - ry * cellH;
+        const lat0 = lat1 - cellH;
+        const polygon = [
+          [lon0, lat0],
+          [lon1, lat0],
+          [lon1, lat1],
+          [lon0, lat1],
+        ];
+        out.push({ polygon, value: t });
       }
     }
-
-    ctx.putImageData(img, 0, 0);
-    return c;
-  }, [selectedView]);
+    return out;
+  }, [activePaletteKey]);
   useEffect(() => {
     if (!flagStudentIcon) return;
     const img = new Image();
@@ -266,18 +258,25 @@ export default function MapLatitude({
     }),
   ];
 
-  // If enabled, add aerosol BitmapLayer beneath the heatmap
-  if (enabled && aerosolCanvas) {
-    // geographic bounds: use the mock aerosol bbox
+  // If enabled, add aerosol PolygonLayer beneath the heatmap
+  if (enabled && aerosolPolygons && aerosolPolygons.length) {
     layers.unshift(
-      new BitmapLayer({
-        id: "aerosol-raster",
-        image: aerosolCanvas,
-        // cast to any to avoid strict tuple typing issues
-        bounds: (A_BBOX as any),
-        opacity: 0.45,
-        desaturate: 0.2,
+      new PolygonLayer<any>({
+        id: "aerosol-polygons",
+        data: aerosolPolygons,
         pickable: false,
+        stroked: true,
+        filled: true,
+        getPolygon: (d: any) => d.polygon,
+        getFillColor: (d: any) => {
+          const t = Math.max(0, Math.min(1, d.value || 0));
+          const [r, g, b] = colorForValue(activePalette, t);
+          // invert the color to get the 'opposite' color
+          // use alpha=128 for ~50% transparency
+          return [255 - Math.round(r), 255 - Math.round(g), 255 - Math.round(b), 100];
+        },
+        getLineColor: () => [0, 0, 0, 255],
+        lineWidthMinPixels: 1,
       })
     );
   }
