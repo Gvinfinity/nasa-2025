@@ -15,7 +15,7 @@ import {
 } from "./utils/gridHelpers";
 import useMapTooltip from "./utils/useMapTooltip";
 import { colorForValue, VIEWS, PALETTES } from "./utils/palettes";
-import { exampleGridList, ROWS, COLS, BBOX } from "../../mock/mockMapData";
+import { exampleGridList, ROWS, COLS, BBOX } from "../../data/mock/mockMapData";
 import { usePalette } from "../../contexts/PaletteContext";
 import MapBar from "./utils/mapBar";
 
