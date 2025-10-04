@@ -1,8 +1,7 @@
 import React from "react";
-import { Button } from "../../components/index";
 import { useHome } from "./useHome";
 import { Sidebar } from "../../components/Sidebar/Sidebar";
-import Map from "../maps/Map";
+import MapLatitude from "../../components/maps/LatitudeMap";
 
 export const Home: React.FC = () => {
   // const { handleStoriesClick, handleSimulatorClick, handleGamesClick } =
@@ -10,23 +9,7 @@ export const Home: React.FC = () => {
 
   return (
     <Sidebar>
-      <Map />
-      {/* <div className="relative flex min-h-screen flex-col justify-center items-center m:py-12">
-        <h1 className="text-center text-5xl">Shark Tracking Dashboard 🦈</h1>
-        <div className="flex justify-center mt-10 gap-10">
-          <Button
-            onClick={handleStoriesClick}
-            text="Stories"
-            variant="primary"
-          />
-          <Button
-            onClick={handleSimulatorClick}
-            text="Simulator"
-            variant="secondary"
-          />
-          <Button onClick={handleGamesClick} text="Games" variant="tertiary" />
-        </div>
-      </div> */}
+      <MapLatitude />
     </Sidebar>
   );
 };

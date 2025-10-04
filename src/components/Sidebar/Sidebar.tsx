@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Sharkmap } from "./components/Sharkmap";
 import { ImportanceOfSharks } from "./components/ImportanceOfSharks";
@@ -12,6 +12,16 @@ interface SidebarProps {
 }
 
 export const Sidebar = ({ children }: SidebarProps) => {
+  // map mode lives in the Sidebar and is injected into child map components
+  const [mapMode, setMapMode] = useState<"research" | "student">("research");
+  // selectedView control will use the PaletteContext via Sharkmap and other components;
+  // Sidebar also exposes a small control here to let users switch the active view.
+  // We'll clone children and inject `mapMode` so MapLatitude can read it as a prop.
+  const injectedChildren = (children as any)
+    ? React.Children.map(children as any, (child: any) =>
+        React.isValidElement(child) ? React.cloneElement(child, ({ mapMode } as any)) : child
+      )
+    : children;
 
   return (
     <div className="flex">
@@ -26,6 +36,14 @@ export const Sidebar = ({ children }: SidebarProps) => {
           <MeetTheDevelopers />
         </nav>
 
+
+            <button
+              onClick={() => setMapMode((m) => (m === "research" ? "student" : "research"))}
+              className="absolute bottom-6 left-4 w-fit px-3 py-1 cursor-pointer rounded-lg bg-blue-800/70 hover:bg-blue-700/80 text-sm"
+            >
+              {mapMode === "research" ? "Student Mode" : "Research Mode"}
+            </button>
+
         {/* Decorative background */}
         <motion.div
           className="absolute bottom-0 left-0 w-full h-40 bg-blue-700/30 blur-3xl rounded-t-full"
@@ -36,9 +54,7 @@ export const Sidebar = ({ children }: SidebarProps) => {
 
       {/* Main content */}
       <div className="flex-1 bg-black min-h-screen">
-        <h1 className="text-3xl font-bold text-blue-900">
-          {children}
-        </h1>
+        <div className="w-full h-full">{injectedChildren}</div>
       </div>
     </div>
   );

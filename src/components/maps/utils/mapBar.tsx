@@ -1,16 +1,32 @@
 import { Button } from "../../ui/button";
 import { PALETTES } from '../utils/palettes';
 import { usePalette } from '../../../contexts/PaletteContext';
+import { useEffect } from "react";
 
 
 function MapGradient() {
   const { selectedView } = usePalette();
-  const palette = PALETTES[selectedView] || PALETTES.default;
+  // map display names (e.g. "Temperature") to PALETTES keys (e.g. "temperature")
+  const VIEW_TO_KEY: Record<string, string> = {
+    Temperature: "temperature",
+    Salinity: "salinity",
+    "Ocean Topography": "topography",
+    "Ocean Currents": "currents",
+    Biomass: "biomass",
+    default: "default",
+  };
+  const paletteKey = VIEW_TO_KEY[selectedView ?? "default"] ?? "default";
+  const palette = PALETTES[paletteKey] || PALETTES.default;
   const stops = palette.map((c, i) => {
     const pct = Math.round((i / (palette.length - 1)) * 100);
     return `rgb(${c[0]}, ${c[1]}, ${c[2]}) ${pct}%`;
   });
   const gradient = `linear-gradient(90deg, ${stops.join(", ")})`;
+
+  useEffect(() => {
+    // This effect runs whenever selectedView changes
+    console.log(`Selected view changed to: ${selectedView}`);
+  }, [selectedView]);
 
   return (
     <div className="ml-2 w-full">

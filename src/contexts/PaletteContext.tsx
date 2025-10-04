@@ -17,13 +17,13 @@ const PaletteContext = createContext<PaletteContextType | undefined>(undefined);
 export const PaletteProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
-  const [selectedView, setSelectedView] = useState<string | undefined>();
+  const [selectedView, setSelectedView] = useState<string | undefined>(VIEWS[0]);
   useEffect(() => {
     console.log("PaletteContext: selectedView changed to", selectedView);
   }, [selectedView]);
   return (
     <PaletteContext.Provider value={{ selectedView, setSelectedView }}>
-      {children}""
+      {children}
     </PaletteContext.Provider>
   );
 };

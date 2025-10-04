@@ -9,7 +9,7 @@ import { DeckGL } from "@deck.gl/react";
 import { HeatmapLayer } from "@deck.gl/aggregation-layers";
 import { ScatterplotLayer, IconLayer, BitmapLayer } from "@deck.gl/layers";
 import { useCallback, useMemo, useState, useEffect } from "react";
-import { colorForValue, VIEWS, PALETTES } from "./utils/palettes";
+import { colorForValue, PALETTES } from "./utils/palettes";
 import useMapTooltip from "./utils/useMapTooltip";
 import { usePalette } from "../../contexts/PaletteContext";
 import { FlyToInterpolator } from "@deck.gl/core";
@@ -44,6 +44,7 @@ interface LatitudeMapProps {
   radiusPixels?: number;
   mapStyle?: string;
   quizData?: Array<QuizPoint> | string;
+  mapMode?: "research" | "student";
 }
 
 export default function MapLatitude({
@@ -53,14 +54,28 @@ export default function MapLatitude({
   radiusPixels = 30,
   mapStyle = MAP_STYLE,
   quizData = mockQuizPoints,
+  mapMode: mapModeProp,
 }: LatitudeMapProps) {
   const [viewState, setViewState] = useState<
     MapViewState & { transitionDuration?: number; transitionInterpolator?: any }
   >(INITIAL_VIEW_STATE);
   const [enabled, setEnabled] = useState(false);
-  const [mapMode, setMapMode] = useState<"research" | "student">("research");
+  // mapMode is now passed in as a prop from the Sidebar (or parent)
+  const effectiveMapMode = mapModeProp ?? "research";
 
-  const { selectedView, setSelectedView } = usePalette();
+  const { selectedView } = usePalette();
+  const activeView = selectedView ?? "default";
+  // map display names to internal palette keys
+  const VIEW_TO_KEY: Record<string, string> = {
+    Temperature: "temperature",
+    Salinity: "salinity",
+    "Ocean Topography": "topography",
+    "Ocean Currents": "currents",
+    Biomass: "biomass",
+    default: "default",
+  };
+  const activePaletteKey = VIEW_TO_KEY[activeView] ?? "default";
+  const activePalette = (PALETTES[activePaletteKey] || PALETTES.default) as number[][];
 
   const points = useMemo(() => {
     if (typeof data === "string")
@@ -119,7 +134,7 @@ export default function MapLatitude({
     for (let ry = 0; ry < rows; ry++) {
       for (let rx = 0; rx < cols; rx++) {
         const t = Math.max(0, Math.min(1, mockAerosol[ry]?.[rx] ?? 0));
-        const [r, g, b] = colorForValue(selectedView, t);
+  const [r, g, b] = colorForValue(activePalette, t);
         for (let sy = 0; sy < scale; sy++) {
           for (let sx = 0; sx < scale; sx++) {
             const x = rx * scale + sx;
@@ -179,32 +194,23 @@ export default function MapLatitude({
     }));
   }, []);
 
-  const layers = useMemo(() => {
-    const palette = PALETTES[selectedView as keyof typeof PALETTES] || PALETTES.default;
-    const colorRange = palette.map((c) => [...c, 255]);
-
-    // Example: Define unique data for each view
-    const viewData = {
-      Temperature: data,
-      Salinity: data, // Replace with salinity-specific data
-      "Ocean Topography": data, // Replace with topography-specific data
-      "Ocean Currents": data, // Replace with currents-specific data
-      Biomass: data, // Replace with biomass-specific data
-    };
-
-    const currentData = viewData[selectedView as keyof typeof viewData] || data;
-
-    return [
-      new HeatmapLayer<DataPoint>({
-        id: `${selectedView}-heatmap-layer`,
-        data: currentData,
+  const layers: any[] = [
+    (() => {
+      // Build colorRange expected by deck.gl HeatmapLayer: array of [r,g,b,a]
+  const palette = activePalette;
+      const heatColorRange = Array.isArray(palette)
+        ? palette.map((c: number[]) => [c[0], c[1], c[2], 255])
+        : [];
+      return new HeatmapLayer<DataPoint>({
+        data,
+        id: "heatmap-layer",
         pickable: true,
         getPosition: (d) => [d[0], d[1]],
         getWeight: (d) => d[2],
         radiusPixels,
         intensity,
         threshold,
-        colorRange: colorRange as any,
+        // allow clicking on the heatmap to zoom to that location
         onClick: (info: any) => {
           if (!info || !info.coordinate || !Array.isArray(info.coordinate))
             return true;
@@ -222,33 +228,38 @@ export default function MapLatitude({
           }));
           return true;
         },
+  // colorRange typing is strict; cast at runtime after validation
+  colorRange: heatColorRange as unknown as any,
+  // show quiz flags when enabled (student mode) — either MapBar enabled or explicit student mapMode
         onHover: makeHoverHandler((obj: any, info: any) => {
           const lon = info?.coordinate?.[0] ?? obj[0] ?? NaN;
           const lat = info?.coordinate?.[1] ?? obj[1] ?? NaN;
           return { weight: obj[2], lon, lat };
         }),
+      });
+    })(),
+    new ScatterplotLayer<any>({
+      id: "heat-dots",
+      data: points,
+      pickable: true,
+      radiusUnits: "pixels",
+      getPosition: (d) => d.position,
+      getRadius: (_d: any) => 4,
+      getFillColor: (d) => {
+  const t = Math.max(0, Math.min(1, (d.weight || 0) / 10));
+  const [r, g, b] = colorForValue(activePalette, t);
+        return [r, g, b, 200];
+      },
+      onClick: onDotClick,
+      onHover: makeHoverHandler((obj: any, info: any) => {
+        const lon =
+          (obj.position && obj.position[0]) ?? info?.coordinate?.[0] ?? NaN;
+        const lat =
+          (obj.position && obj.position[1]) ?? info?.coordinate?.[1] ?? NaN;
+        return { weight: obj.weight, lon, lat };
       }),
-      new ScatterplotLayer<any>({
-        id: `${selectedView}-scatterplot-layer`,
-        data: points,
-        pickable: true,
-        radiusUnits: 'pixels',
-        getPosition: (d) => d.position,
-        getRadius: (_d: any) => 4,
-        getFillColor: (d) => {
-          const t = Math.max(0, Math.min(1, (d.weight || 0) / 10));
-          const [r, g, b] = colorForValue(palette, t);
-          return [r, g, b, 200];
-        },
-        onClick: onDotClick,
-        onHover: makeHoverHandler((obj: any, info: any) => {
-          const lon = (obj.position && obj.position[0]) ?? info?.coordinate?.[0] ?? NaN;
-          const lat = (obj.position && obj.position[1]) ?? info?.coordinate?.[1] ?? NaN;
-          return { weight: obj.weight, lon, lat };
-        }),
-      }),
-    ];
-  }, [data, points, radiusPixels, intensity, threshold, selectedView, makeHoverHandler, onDotClick]);
+    }),
+  ];
 
   // If enabled, add aerosol BitmapLayer beneath the heatmap
   if (enabled && aerosolCanvas) {
@@ -267,7 +278,7 @@ export default function MapLatitude({
   }
 
   // show quiz flags when enabled (student mode) — explicit student mapMode
-  if (mapMode === "student") {
+  if (effectiveMapMode === "student") {
     const quizPointsData = (
       typeof quizData === "string" ? [] : (quizData as QuizPoint[])
     ).map((q) => ({ position: [q[0], q[1]], question: q[2] }));
@@ -348,14 +359,15 @@ export default function MapLatitude({
   const cursorStyle = cursor;
 
   return (
-    <div style={{ position: 'relative', width: '100%', minHeight: '100vh', height: '100%', cursor: cursorStyle }}>
-      <div style={{ position: 'absolute', left: 12, bottom: 12, zIndex: '1001', pointerEvents: 'auto' }}>
-        {/* <label style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.9)', padding: '6px 8px', borderRadius: 6 }}>
-          <select value={selectedView} onChange={e => setSelectedView(e.target.value)}>
-            {VIEWS.map((v: string) => <option key={v} value={v}>{v}</option>)}
-          </select>
-        </label> */}
-      </div>
+    <div
+      style={{
+        position: "relative",
+        width: "100%",
+        minHeight: "100vh",
+        height: "100%",
+        cursor: cursorStyle,
+      }}
+    >
       <MapBar enabled={enabled} setEnabled={setEnabled} />
 
       <DeckGL
