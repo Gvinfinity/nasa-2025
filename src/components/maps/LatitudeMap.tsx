@@ -400,30 +400,8 @@ export default function MapLatitude({
         onViewStateChange={(e: any) => setViewState(e.viewState)}
         layers={layers}
       >
-        {/*
-          Disable the built-in attribution control here. Be careful: removing
-          attribution may violate the terms of the basemap provider (for
-          example CARTO/OpenStreetMap attribution requirements). If you need
-          to remove/hide the mark for a specific deployment, confirm licensing
-          or host tiles yourself.
-        */}
         <Map reuseMaps mapStyle={mapStyle} mapLib={maplibregl as any} attributionControl={false} />
       </DeckGL>
-
-      {/* Vertical depth slider on the right */}
-      <div style={{ position: 'absolute', right: 0, bottom:"17%", transform: 'rotate(270deg)', zIndex: 2003, display: 'flex', alignItems: 'center', gap: 8 }}>
-        <div style={{ writingMode: 'vertical-rl',  color: 'white', fontSize: 12, opacity: 0.9 }}>{depth} m</div>
-        <input
-          type="range"
-          min={0}
-          max={3000}
-          step={10}
-          value={depth}
-          onChange={(e) => setDepth(Number(e.target.value))}
-          style={{ height: 140 }}
-          aria-label="Depth (m)"
-        />
-      </div>
 
       {tooltip && (
         <div
@@ -455,10 +433,23 @@ export default function MapLatitude({
         </div>
       )}
 
-      {/* unified monthIndex slider (see block below) */}
-        <div style={{ position: "absolute", left: 12, right: 12, bottom: 12, zIndex: 2002 }}>
-          <div style={{ background: "rgba(0,0,0,0.6)", padding: 8, borderRadius: 8, display: "flex", alignItems: "center", gap: 12 }}>
-            <div style={{ color: "white", minWidth: 48 }}>Date</div>
+      {/* Vertical depth slider on the right */}
+      <div className="absolute bottom-[15%] rotate-[270deg] right-1 z-2003 flex items-center">
+        <div style={{ writingMode: 'vertical-rl',  color: 'white', fontSize: 11, opacity: 0.9 }}>{depth} m</div>
+        <input
+          type="range"
+          min={0}
+          max={3000}
+          step={10}
+          value={depth}
+          onChange={(e) => setDepth(Number(e.target.value))}
+          style={{ height: 140 }}
+          aria-label="Depth (m)"
+        />
+      </div>
+      
+        <div  className="absolute left-12 right-12 bottom-2 z-2002 px-2 py-4 rounded-2xl bg-blue-900/60">
+          <div className="flex items-center gap-12 ">
             <input
               type="range"
               min={0}
@@ -467,16 +458,58 @@ export default function MapLatitude({
               onChange={(e) => setMonthIndex(Number(e.target.value))}
               style={{ flex: 1 }}
             />
-            <div style={{ color: "white", width: 160, textAlign: "right" }}>{MONTHS[selectedMonth - 1]} {selectedYear}</div>
+
           </div>
-          {/* optional tick row similar to the attached image: show labels every 3 months */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6, paddingLeft: 6, paddingRight: 6, color: 'rgba(255,255,255,0.7)', fontSize: 12 }}>
-            {Array.from({ length: Math.ceil(TOTAL_MONTHS / 3) }).map((_, i) => {
-              const idx = i * 3;
-              const m = MONTHS[(idx % 12)];
-              // show only the month abbreviation (Jan / Apr / Jul / Oct) as requested
-              return <div key={i}>{m}</div>;
-            })}
+
+          {/* year labels above the slider + proportional month labels underneath */}
+          <div style={{ position: 'relative', height: 36, marginTop: 6 }}>
+            {/* Years (2020..2024) positioned proportionally above the slider */}
+            <div style={{ position: 'absolute', left: 6, right: 6, top: -35, height: 18 }}>
+              {Array.from({ length: 5 }).map((_, yi) => {
+                const year = START_YEAR + yi;
+                const pct = (yi / (5 - 1)) * 100; // 0..100 over five years
+                return (
+                  <div
+                    key={year}
+                    style={{
+                      position: 'absolute',
+                      left: `calc(${pct}% )`,
+                      transform: 'translateX(-50%)',
+                      top: 0,
+                      color: 'rgba(255,255,255,0.85)',
+                      fontSize: 12,
+                      fontWeight: 600,
+                    }}
+                  >
+                    {year}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* proportional month labels: positioned across the full monthIndex range */}
+            <div style={{ position: 'absolute', left: 6, right: 6, top: 6, height: 24 }}>
+              {Array.from({ length: 12 }).map((_, i) => {
+                const pct = (i / (12 - 1)) * 100; // 0..100
+                const monthIdx = Math.round((i / (12 - 1)) * (TOTAL_MONTHS - 1));
+                const m = MONTHS[monthIdx % 12];
+                return (
+                  <div
+                    key={i}
+                    style={{
+                      position: 'absolute',
+                      left: `calc(${pct}% )`,
+                      transform: 'translateX(-50%)',
+                      top: 0,
+                      color: 'rgba(255,255,255,0.7)',
+                      fontSize: 12,
+                    }}
+                  >
+                    {m}
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
       

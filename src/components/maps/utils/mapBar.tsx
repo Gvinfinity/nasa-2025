@@ -1,8 +1,7 @@
 // using a small toggle instead of the Button component
-import { PALETTES } from '../utils/palettes';
-import { usePalette } from '../../../contexts/PaletteContext';
+import { PALETTES } from "../utils/palettes";
+import { usePalette } from "../../../contexts/PaletteContext";
 import { useEffect } from "react";
-
 
 function MapGradient() {
   const { selectedView } = usePalette();
@@ -48,25 +47,32 @@ interface MapBarProps {
 }
 
 export default function MapBar({ enabled, setEnabled }: MapBarProps) {
-    return (
-        <div className="w-full absolute top-0 bg-zinc-300 text-black h-12 z-[1001]">
-            <div className="grid grid-cols-[minmax(220px,1fr)_1fr_auto] items-center gap-2 h-full">
-                <div className="flex items-center">
-                    <MapGradient />
-                </div>
-                <div className="text-center">
-                    <p className="text-lg font-medium" style={{ fontSize: "1.125rem" }}>
-                        Probability of Sharks (%)
-                    </p>
-                </div>
+  return (
+    <div className="w-full absolute top-0 bg-zinc-300 text-black h-12 z-[1001]">
+      <div className="grid grid-cols-[minmax(220px,1fr)_1fr_auto] items-center gap-2 h-full">
+        <div className="flex items-center">
+          <MapGradient />
+        </div>
+        <div className="text-center">
+          <p className="text-lg font-medium" style={{ fontSize: "1.125rem" }}>
+            Probability of Sharks (%)
+          </p>
+        </div>
         <div className="flex items-center justify-end pr-4">
           <label className="relative inline-flex items-center cursor-pointer">
-            <input type="checkbox" className="sr-only peer" checked={enabled} onChange={() => setEnabled(!enabled)} />
+            <input
+              type="checkbox"
+              className="sr-only peer"
+              checked={enabled}
+              onChange={() => setEnabled(!enabled)}
+            />
             <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 rounded-full peer-checked:bg-cyan-600 peer-checked:after:translate-x-5 peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:border after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
-            <span className="ml-3 text-sm font-medium text-black">{enabled ? 'Enabled' : 'Disabled'}</span>
+            <span className="ml-3 text-sm font-medium text-black">
+              {enabled ? "Enabled" : "Disabled"}
+            </span>
           </label>
         </div>
-            </div>
-        </div>
-    );
+      </div>
+    </div>
+  );
 }
