@@ -1,7 +1,7 @@
 import React from "react";
 import { Button } from "../../components/index";
 import { useHome } from "./useHome";
-import { Sidebar } from "../../components/Sidebar";
+import { Sidebar } from "../../components/Sidebar/Sidebar";
 
 export const Home: React.FC = () => {
   const { handleStoriesClick, handleSimulatorClick, handleGamesClick } =
