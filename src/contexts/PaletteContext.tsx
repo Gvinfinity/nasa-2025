@@ -1,28 +1,36 @@
-import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import { VIEWS } from '../components/maps/utils/palettes';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  ReactNode,
+  useEffect,
+} from "react";
+import { VIEWS } from "../components/maps/utils/palettes";
 
 type PaletteContextType = {
-  selectedView: string;
-  setSelectedView: (v: string) => void;
+  selectedView?: string;
+  setSelectedView: (v?: string) => void;
 };
 
 const PaletteContext = createContext<PaletteContextType | undefined>(undefined);
 
-export const PaletteProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const [selectedView, setSelectedView] = useState<string>(VIEWS[3]);
-    useEffect(() => {
-        console.log('PaletteContext: selectedView changed to', selectedView);
-    }, [selectedView]);
+export const PaletteProvider: React.FC<{ children: ReactNode }> = ({
+  children,
+}) => {
+  const [selectedView, setSelectedView] = useState<string | undefined>();
+  useEffect(() => {
+    console.log("PaletteContext: selectedView changed to", selectedView);
+  }, [selectedView]);
   return (
     <PaletteContext.Provider value={{ selectedView, setSelectedView }}>
-      {children}
+      {children}""
     </PaletteContext.Provider>
   );
 };
 
 export const usePalette = () => {
   const ctx = useContext(PaletteContext);
-  if (!ctx) throw new Error('usePalette must be used within PaletteProvider');
+  if (!ctx) throw new Error("usePalette must be used within PaletteProvider");
   return ctx;
 };
 
