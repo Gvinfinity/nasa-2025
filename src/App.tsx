@@ -3,6 +3,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Home, SharksImportance } from "../src/pages/";
 import { SoundProvider } from "./contexts/SoundContext";
+import Cover from "./pages/Cover";
 
 function App() {
   return (
@@ -11,7 +12,7 @@ function App() {
         <Routes>
           <Route path="/">
             <Route index element={<Home />} />
-            <Route path="sharks-importance" element={<SharksImportance />} />
+            <Route path="cover" element={<Cover />} />
           </Route>
         </Routes>
       </BrowserRouter>
