@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 
 const useWhatAreSharks = () => {
-  const [data, setData] = useState(null);
+  const [data,] = useState(null);
 
   useEffect(() => {
     // Fetch data or perform any side effects here

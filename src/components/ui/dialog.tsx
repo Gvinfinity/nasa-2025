@@ -4,7 +4,7 @@ import { X } from "lucide-react";
 interface DialogProps {
   open: boolean;
   title?: string;
-  children?: React.ReactNode;
+  // children?: React.ReactNode;
   onClose: () => void;
   footer?: React.ReactNode;
   options?: string[];
@@ -16,7 +16,7 @@ interface DialogProps {
 export const Dialog: React.FC<DialogProps> = ({
   open,
   title,
-  children,
+  // children,
   onClose,
   footer,
   options,

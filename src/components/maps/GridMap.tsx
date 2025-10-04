@@ -14,7 +14,7 @@ import {
   cellCenterLonLat,
 } from "./utils/gridHelpers";
 import useMapTooltip from "./utils/useMapTooltip";
-import { colorForValue, VIEWS, PALETTES } from "./utils/palettes";
+import { colorForValue, PALETTES } from "./utils/palettes";
 import { exampleGridList, ROWS, COLS, BBOX } from "../../data/mock/mockMapData";
 import { usePalette } from "../../contexts/PaletteContext";
 import MapBar from "./utils/mapBar";
@@ -75,7 +75,7 @@ export default function GridMap({
   const { tooltip, makeHoverHandler, cursor } = useMapTooltip();
 
   const layers = useMemo(() => {
-    const palette = PALETTES[selectedView] || PALETTES.default;
+    const palette = PALETTES[selectedView || 'default'] || PALETTES.default;
     const colorRange = palette.map((c) => [...c, 255]);
 
     // Example: Define unique data for each view
@@ -85,9 +85,11 @@ export default function GridMap({
       "Ocean Topography": tuples, // Replace with topography-specific tuples
       "Ocean Currents": tuples, // Replace with currents-specific tuples
       Biomass: tuples, // Replace with biomass-specific tuples
-    };
+    } as const;
 
-    const currentData = viewData[selectedView] || tuples;
+    const currentData = (selectedView && selectedView in viewData) 
+      ? viewData[selectedView as keyof typeof viewData] 
+      : tuples;
 
     return [
       new HeatmapLayer<DataPoint>({

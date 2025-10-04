@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { Volume, Volume2 } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, Variants } from "framer-motion";
 import { useSound } from "../../../contexts/SoundContext";
 
 interface TextWithSpeechProps {
@@ -37,21 +37,21 @@ const TextWithSpeech: React.FC<TextWithSpeechProps> = ({
   }, [text, voiceName]);
 
   // 🌀 Animations
-  const cardVariants = {
+  const cardVariants: Variants = {
     hidden: { opacity: 0, y: 20, scale: 0.95 },
     visible: {
       opacity: 1,
       y: 0,
       scale: 1,
-      transition: { duration: 0.5, ease: "easeOut" },
+      transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] },
     },
   };
 
-  const textVariants = {
+  const textVariants: Variants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      transition: { duration: 0.8, delay: 0.3, ease: [0.25, 0.1, 0.25, 1] },
+      transition: { duration: 0.8, delay: 0.3, ease: [0.25, 0.46, 0.45, 0.94] },
     },
   };
 

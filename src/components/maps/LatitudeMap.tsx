@@ -69,8 +69,8 @@ export default function MapLatitude({
   const START_YEAR = 2020;
   const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   const TOTAL_MONTHS = 60;
-  const selectedYear = START_YEAR + Math.floor(monthIndex / 12);
-  const selectedMonth = (monthIndex % 12) + 1; // 1..12
+  // const selectedYear = START_YEAR + Math.floor(monthIndex / 12);
+  // const selectedMonth = (monthIndex % 12) + 1; // 1..12
 
   const { selectedView } = usePalette();
   const activeView = selectedView ?? "default";
@@ -518,7 +518,6 @@ export default function MapLatitude({
         open={quizDialogOpen}
         onClose={() => setQuizDialogOpen(false)}
         title={activeQuestion?.questionText || "Question"}
-        questionText={activeQuestion?.questionText}
         options={activeQuestion?.options}
         correctAnswer={activeQuestion?.answer}
         onAnswer={(isCorrect, selected) => {

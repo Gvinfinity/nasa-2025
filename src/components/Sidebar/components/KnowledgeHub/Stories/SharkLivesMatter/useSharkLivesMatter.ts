@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 
 const useSharkLivesMatter = () => {
-  const [data, setData] = useState(null);
+  const [data,] = useState(null);
 
   useEffect(() => {
     // Fetch data or perform any side effects here

@@ -29,7 +29,7 @@ export const Sharkmap = () => {
     { name: "Biomass", icon: "🐟", selected: false, color: [255, 165, 0] },
   ]);
 
-  const { selectedView, setSelectedView } = usePalette();
+  const { setSelectedView } = usePalette();
 
   const handleItemClick = (i: number) => {
     const selectedOption = sharkMapOptions[i];
