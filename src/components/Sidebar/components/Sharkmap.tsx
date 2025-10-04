@@ -34,11 +34,11 @@ export const Sharkmap = () => {
   const handleItemClick = (i: number) => {
     const selectedOption = sharkMapOptions[i];
     setSelectedView(selectedOption.name);
-    
+
     setSharkMapOptions((prev) =>
       prev.map((option, index) => ({
         ...option,
-        selected: index === i
+        selected: index === i,
       }))
     );
   };
