@@ -5,21 +5,21 @@ export const PALETTES: Record<string, number[][]> = {
     [204, 236, 230],
     [153, 216, 201],
     [102, 194, 164],
-    [35, 139, 69]
+    [35, 139, 69],
   ],
   topography: [
     [255, 255, 204],
     [255, 237, 160],
     [254, 204, 92],
     [253, 141, 60],
-    [240, 59, 32]
+    [240, 59, 32],
   ],
   biomass: [
     [255, 245, 240],
     [254, 224, 210],
     [252, 187, 161],
     [252, 146, 114],
-    [215, 48, 31]
+    [215, 48, 31],
   ],
   temperature: [
     [49, 54, 149],
@@ -28,20 +28,24 @@ export const PALETTES: Record<string, number[][]> = {
     [171, 217, 233],
     [255, 255, 191],
     [254, 153, 41],
-    [204, 76, 2]
+    [204, 76, 2],
   ],
   currents: [
     [229, 245, 249],
     [153, 216, 201],
     [44, 162, 95],
-    [0, 109, 44]
+    [0, 109, 44],
   ],
-  default: [[255, 255, 178], [254, 204, 92], [253, 141, 60], [240, 59, 32]]
+  default: [
+    [255, 255, 178],
+    [254, 204, 92],
+    [253, 141, 60],
+    [240, 59, 32],
+  ],
 };
 
 // Map a 0..1 value to an RGB tuple from the palette using linear interpolation between stops
-export function colorForValue(paletteName: string, t: number) {
-  const palette = PALETTES[paletteName] || PALETTES.default;
+export function colorForValue(palette: number[][], t: number) {
   const n = palette.length;
   const clamped = Math.max(0, Math.min(1, t));
   const idx = clamped * (n - 1);
@@ -55,7 +59,12 @@ export function colorForValue(paletteName: string, t: number) {
   const b = Math.round(c0[2] + (c1[2] - c0[2]) * frac);
   return [r, g, b];
 }
-
-export const VIEWS = ['salinity', 'topography', 'biomass', 'temperature', 'currents'];
+export const VIEWS = [
+  "Temperature",
+  "Salinity",
+  "Ocean Topography",
+  "Ocean Currents",
+  "Biomass",
+];
 
 export default { PALETTES, colorForValue, VIEWS };

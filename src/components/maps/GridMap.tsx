@@ -4,7 +4,7 @@ import { ScatterplotLayer } from "@deck.gl/layers";
 import { Map } from "react-map-gl/maplibre";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
-import { useCallback, useState } from "react";
+import { useCallback, useState, useMemo } from "react";
 import { FlyToInterpolator } from "@deck.gl/core";
 import type { MapViewState } from "@deck.gl/core";
 import {
@@ -41,7 +41,7 @@ export default function GridMap({
   rows = ROWS,
   bbox = BBOX,
 }: GridMapProps) {
-  const { selectedView, setSelectedView } = usePalette();
+  const { selectedView } = usePalette();
   const tuples: DataPoint[] = gridListToTuples(gridList, cols, rows, bbox);
   const [enabled, setEnabled] = useState(false);
 
@@ -74,49 +74,53 @@ export default function GridMap({
 
   const { tooltip, makeHoverHandler, cursor } = useMapTooltip();
 
-  // Build colorRange for HeatmapLayer from selected palette with runtime validation
-  const palette = PALETTES[selectedView] || PALETTES.default;
-  const heatColorRange = Array.isArray(palette)
-    ? palette.map((c) => [c[0], c[1], c[2], 255])
-    : [];
+  const layers = useMemo(() => {
+    const palette = PALETTES[selectedView] || PALETTES.default;
+    const colorRange = palette.map((c) => [...c, 255]);
 
-  const layers = [
-    new HeatmapLayer<DataPoint>({
-      id: "grid-heat",
-      data: tuples,
-      getPosition: (d) => [d[0], d[1]],
-      getWeight: (d) => d[2],
-      radiusPixels: 30,
-      intensity: 1,
-      threshold: 0.03,
-      // cast to any to satisfy deck.gl typings for colorRange
-      colorRange: heatColorRange as any,
-    }),
+    // Example: Define unique data for each view
+    const viewData = {
+      Temperature: tuples,
+      Salinity: tuples, // Replace with salinity-specific tuples
+      "Ocean Topography": tuples, // Replace with topography-specific tuples
+      "Ocean Currents": tuples, // Replace with currents-specific tuples
+      Biomass: tuples, // Replace with biomass-specific tuples
+    };
 
-    new ScatterplotLayer<any>({
-      id: "grid-dots",
-      data: scatterData,
-      pickable: true,
-      radiusUnits: "pixels",
-      getPosition: (d: any) => d.position,
-      getRadius: () => 6,
-      getFillColor: (d: any) => {
-        // normalize intensity (adjust denominator as needed for your data)
-        const t = Math.max(0, Math.min(1, (d.intensity || 0) / 10));
-        const [r, g, b] = colorForValue(selectedView, t);
-        return [r, g, b, 220];
-      },
-      onClick: onDotClick,
-      onHover: makeHoverHandler((obj: any, info: any) => {
-        // object from scatterData: { index, intensity, position }
-        const lon =
-          (obj.position && obj.position[0]) ?? info?.coordinate?.[0] ?? NaN;
-        const lat =
-          (obj.position && obj.position[1]) ?? info?.coordinate?.[1] ?? NaN;
-        return { index: obj.index, intensity: obj.intensity, lon, lat };
+    const currentData = viewData[selectedView] || tuples;
+
+    return [
+      new HeatmapLayer<DataPoint>({
+        id: `${selectedView}-grid-heat`,
+        data: currentData,
+        getPosition: (d) => [d[0], d[1]],
+        getWeight: (d) => d[2],
+        radiusPixels: 30,
+        intensity: 1,
+        threshold: 0.03,
+        colorRange: colorRange as any,
       }),
-    }),
-  ];
+      new ScatterplotLayer<any>({
+        id: `${selectedView}-grid-dots`,
+        data: scatterData,
+        pickable: true,
+        radiusUnits: 'pixels',
+        getPosition: (d: any) => d.position,
+        getRadius: () => 6,
+        getFillColor: (d: any) => {
+          const t = Math.max(0, Math.min(1, (d.intensity || 0) / 10));
+          const [r, g, b] = colorForValue(palette, t);
+          return [r, g, b, 220];
+        },
+        onClick: onDotClick,
+        onHover: makeHoverHandler((obj: any, info: any) => {
+          const lon = (obj.position && obj.position[0]) ?? info?.coordinate?.[0] ?? NaN;
+          const lat = (obj.position && obj.position[1]) ?? info?.coordinate?.[1] ?? NaN;
+          return { index: obj.index, intensity: obj.intensity, lon, lat };
+        }),
+      }),
+    ];
+  }, [tuples, scatterData, selectedView, onDotClick, makeHoverHandler]);
 
   // Show pointer cursor when hovering a dot (tooltip present)
   const cursorStyle = cursor;
@@ -124,11 +128,11 @@ export default function GridMap({
   return (
     <div style={{ position: 'relative', width: '100%', minHeight: '100vh', height: '100%', cursor: cursorStyle }}>
     <div style={{ position: 'absolute', left: 12, bottom: 12, zIndex: '1001', pointerEvents: 'auto' }}>
-        <label style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.9)', padding: '6px 8px', borderRadius: 6 }}>
+        {/* <label style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.9)', padding: '6px 8px', borderRadius: 6 }}>
           <select value={selectedView} onChange={e => setSelectedView(e.target.value)}>
             {VIEWS.map((v: string) => <option key={v} value={v}>{v}</option>)}
           </select>
-        </label>
+        </label> */}
       </div>
       <MapBar enabled={enabled} setEnabled={setEnabled} />
 
