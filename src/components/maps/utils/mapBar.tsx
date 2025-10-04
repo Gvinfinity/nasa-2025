@@ -1,4 +1,4 @@
-import { Button } from "../../ui/button";
+// using a small toggle instead of the Button component
 import { PALETTES } from '../utils/palettes';
 import { usePalette } from '../../../contexts/PaletteContext';
 import { useEffect } from "react";
@@ -59,16 +59,13 @@ export default function MapBar({ enabled, setEnabled }: MapBarProps) {
                         Probability of Sharks (%)
                     </p>
                 </div>
-                <div className="flex items-center justify-end">
-                    <Button
-                        className={`text-lg text-zinc-100 mr-2 ${enabled ? "bg-cyan-700" : "bg-red-700"
-                            }`}
-                        style={{ fontSize: "1.125rem" }}
-                        onClick={() => setEnabled(!enabled)}
-                    >
-                        {enabled ? "Enabled" : "Disabled"}
-                    </Button>
-                </div>
+        <div className="flex items-center justify-end pr-4">
+          <label className="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" className="sr-only peer" checked={enabled} onChange={() => setEnabled(!enabled)} />
+            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 rounded-full peer-checked:bg-cyan-600 peer-checked:after:translate-x-5 peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:border after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
+            <span className="ml-3 text-sm font-medium text-black">{enabled ? 'Enabled' : 'Disabled'}</span>
+          </label>
+        </div>
             </div>
         </div>
     );
