@@ -16,7 +16,7 @@ export interface ClassifierDataRequest {
 }
 
 export interface ModelResponse {
-  data: Array<[longitude: number, latitude: number, count: number]>;
+  data: Array<{ longitude: number, latitude: number, count: number }>;
   view?: string;
 }
 

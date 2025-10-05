@@ -69,7 +69,7 @@ export default function MapLatitude({
   const effectiveMapMode = mapModeProp ?? "research";
 
   // Use ModelData context for monthIndex/depth and modelData
-  const { modelData, monthIndex, setMonthIndex, depth, setDepth, updateVisibleCoords, fetchModelData } = useModelData();
+  const { modelData, monthIndex, setMonthIndex, depth, setDepth, updateVisibleCoords, fetchModelData, deltaGroup } = useModelData();
   const START_YEAR = 2020;
   const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   const TOTAL_MONTHS = 60;
@@ -423,7 +423,7 @@ export default function MapLatitude({
     let mounted = true;
     let debounceId: any = null;
     let inFlight = false;
-    const thresholdZoom = 2.6; // lower zoom threshold (≈ scale 6)
+    const thresholdZoom = 0.6; // lower zoom threshold (≈ scale 6)
 
     const performSampleAndFetch = async () => {
       if (!mounted) return;
@@ -472,9 +472,10 @@ export default function MapLatitude({
               depth,
               view: selectedView,
               coords: pts,
+              deltas: deltaGroup ?? undefined,
             };
-            console.log('[LatitudeMap] sending classifier request body:', payload);
-            const res = await fetchModelData({ year: START_YEAR + Math.floor(monthIndex / 12), month: (monthIndex % 12) + 1, depth, coords: pts });
+            console.debug('[LatitudeMap] sending classifier request body (with deltas):', payload);
+            const res = await fetchModelData({ year: START_YEAR + Math.floor(monthIndex / 12), month: (monthIndex % 12) + 1, depth, coords: pts, deltas: deltaGroup ?? undefined });
             console.log('[LatitudeMap] classifier response:', res);
           } catch (err) {
             console.error('[LatitudeMap] classifier call failed:', err);

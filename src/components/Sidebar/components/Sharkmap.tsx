@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
+import { useModelData } from "../../../contexts/ModelDataContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { Map, ChevronDown } from "lucide-react";
 import { usePalette } from "../../../contexts/PaletteContext";
@@ -7,17 +7,10 @@ import { ModeToggleButton } from "./ModeToggleButton";
 
 type SharkmapProps = {
   setMapMode?: (m: "research" | "student") => void;
-  enabled?: boolean;
-  setEnabled?: (b: boolean) => void;
   forcedOpen?: boolean;
 };
 
-export const Sharkmap = ({
-  setMapMode,
-  enabled,
-  setEnabled,
-  forcedOpen,
-}: SharkmapProps) => {
+export const Sharkmap = ({ setMapMode, forcedOpen }: SharkmapProps) => {
   const [openMenu, setOpenMenu] = useState(false);
 
   useEffect(() => {
@@ -38,7 +31,7 @@ export const Sharkmap = ({
     { name: "Phytoplanktons", icon: "🦠", color: [0, 255, 100], value: 50 },
   ]);
 
-  const { setSelectedView, colorblindMode, setColorblindMode } = usePalette();
+  const { colorblindMode, setColorblindMode } = usePalette();
 
   const handleValueChange = (index: number, value: number) => {
     setSharkMapOptions((prev) =>
@@ -48,6 +41,22 @@ export const Sharkmap = ({
       }))
     );
   };
+
+  // Wire slider changes into the global deltaGroup for the classifier
+  const { setDeltaGroup } = useModelData();
+
+  useEffect(() => {
+    // when local sharkMapOptions change, map them to DeltaGroup and set in context
+    const dg = {
+      deltaTemp: (sharkMapOptions[0]?.value ?? 50) - 50,
+      deltaClouds: (sharkMapOptions[1]?.value ?? 50) - 50,
+      deltaOceanDepth: (sharkMapOptions[2]?.value ?? 50) - 50,
+      deltaPhytoplankton: (sharkMapOptions[3]?.value ?? 50) - 50,
+    };
+    // normalize to a reasonable numeric range; the sliders are 0..100 with 50 as center
+    console.debug('[Sharkmap] setting deltaGroup:', dg);
+    setDeltaGroup?.(dg as any);
+  }, [sharkMapOptions, setDeltaGroup]);
 
   const handleModeChange = (mode: "research" | "student") => {
     // keep local indicator in sync and notify parent/sidebar

@@ -7,7 +7,7 @@ import React, {
   useCallback,
 } from "react";
 import { usePalette } from "./PaletteContext";
-import { fetchModelData as fetchModelDataFromAPI } from "../api/model";
+import { fetchModelData as fetchModelDataFromAPI, DeltaGroup } from "../api/model";
 
 type DataPoint = [number, number, number, number]; // [lon, lat, weight, depth]
 
@@ -19,11 +19,19 @@ type ModelContextType = {
   setMonthIndex: (v: number) => void;
   depth: number;
   setDepth: (v: number) => void;
+  deltaGroup: DeltaGroup;
+  setDeltaGroup: (d: DeltaGroup) => void;
   fetchModelData: (opts?: {
     year?: number;
     month?: number;
     depth?: number;
     coords?: number[][];
+    deltas?: {
+      deltaTemp?: number;
+      deltaClouds?: number;
+      deltaOceanDepth?: number;
+      deltaPhytoplankton?: number;
+    } | null;
     acceptMock?: boolean;
   }) => Promise<DataPoint[]>;
 };
@@ -41,6 +49,12 @@ export const ModelDataProvider: React.FC<{ children: ReactNode }> = ({
   const [visibleCoords, setVisibleCoords] = useState<Array<[number, number]>>([]);
   const [monthIndex, setMonthIndex] = useState<number>(TOTAL_MONTHS - 1);
   const [depth, setDepth] = useState<number>(1000);
+  const [deltaGroup, setDeltaGroup] = useState<DeltaGroup>({
+    deltaTemp: 0,
+    deltaClouds: 0,
+    deltaOceanDepth: 0,
+    deltaPhytoplankton: 0,
+  });
 
   const { selectedView } = usePalette();
 
@@ -64,20 +78,46 @@ export const ModelDataProvider: React.FC<{ children: ReactNode }> = ({
           tuples = (yearMap[month] || []).filter((t: DataPoint) => (t[3] ?? 0) <= requestedDepth);
         } else {
           try {
-            // call the statically imported API helper (include coords and date)
-            const res = await fetchModelDataFromAPI({ date, depth: requestedDepth, view: selectedView, coords: coords ?? [] });
+          // call the statically imported API helper (include coords, date, and deltas)
+            const deltasToSend = (opts && (opts as any).deltas) ? (opts as any).deltas : deltaGroup;
+            console.debug('[ModelDataContext] calling API with date, depth, view, coords length, deltas:', date, requestedDepth, selectedView, (coords ?? []).length, deltasToSend);
+            const res = await fetchModelDataFromAPI({ date, depth: requestedDepth, view: selectedView, coords: coords ?? [], deltas: deltasToSend });
+            console.debug('[ModelDataContext] raw API response:', res);
             // normalize response: accept either { data: [...] } or an array
             let raw: any[] = [];
             if (Array.isArray(res)) raw = res as any[];
             else if (res && Array.isArray((res as any).data)) raw = (res as any).data;
+            console.debug('[ModelDataContext] normalized raw length:', raw.length, 'sample:', raw.slice(0,3));
 
-            // Ensure each item is a DataPoint (4 elements). If API returns 3 elements (no depth), append depth=0
-            tuples = raw.map((r) => {
-              if (!Array.isArray(r)) return null;
-              if (r.length >= 4) return [Number(r[0]), Number(r[1]), Number(r[2]), Number(r[3])] as DataPoint;
-              if (r.length === 3) return [Number(r[0]), Number(r[1]), Number(r[2]), 0] as DataPoint;
-              return null;
-            }).filter(Boolean) as DataPoint[];
+            // Ensure each item is a DataPoint (4 elements). Accept either
+            // array-shaped items [lon, lat, count, depth?] or object-shaped
+            // items { longitude, latitude, count, depth? }.
+            tuples = raw
+              .map((r) => {
+                // array-shaped
+                if (Array.isArray(r)) {
+                  if (r.length >= 4) return [Number(r[0]), Number(r[1]), Number(r[2]), Number(r[3])] as DataPoint;
+                  if (r.length === 3) return [Number(r[0]), Number(r[1]), Number(r[2]), 0] as DataPoint;
+                  return null;
+                }
+                // object-shaped
+                if (r && typeof r === 'object') {
+                  const maybe = r as any;
+                  if (typeof maybe.longitude === 'number' || typeof maybe.longitude === 'string') {
+                    const lon = Number(maybe.longitude);
+                    const lat = Number(maybe.latitude);
+                    const cnt = Number(maybe.count ?? maybe.value ?? 0);
+                    const d = typeof maybe.depth === 'number' ? maybe.depth : (typeof maybe.depth === 'string' ? Number(maybe.depth) : 0);
+                    return [lon, lat, cnt, d] as DataPoint;
+                  }
+                }
+                return null;
+              })
+              .filter(Boolean) as DataPoint[];
+
+            console.debug('[ModelDataContext] mapped tuples length after supporting object-shape:', tuples.length);
+
+            console.debug('[ModelDataContext] tuples after mapping length:', tuples.length, 'sample:', tuples.slice(0,3));
 
             // apply depth filter only when depth value exists (t[3] numeric)
             tuples = tuples.filter((t) => {
@@ -131,6 +171,8 @@ export const ModelDataProvider: React.FC<{ children: ReactNode }> = ({
         setMonthIndex,
         depth,
         setDepth,
+        deltaGroup,
+        setDeltaGroup,
         fetchModelData,
       }}
     >
