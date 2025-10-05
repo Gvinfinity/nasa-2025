@@ -9,7 +9,7 @@ export const TUTORIAL_SLIDES: Slide[] = [
   },
 {
   title: "Introduction",
-  text: `SharkSeer uses the XGBoost (eXtreme Gradient Boosting) machine learning algorithm to create a mathematical framework that uses publicly available data to predict the percentage chance of shark presence in regions of the Atlantic Ocean. It was trained on the following variables:
+  text: `Shark Seer uses the XGBoost (eXtreme Gradient Boosting) machine learning algorithm to create a mathematical framework that uses publicly available data to predict the percentage chance of shark presence in regions of the Atlantic Ocean. It was trained on the following variables:
 
 - Location (latitude and longitude)
 - Ocean depth
@@ -25,7 +25,7 @@ Take a look at our sources in the *NASA Space Apps Challenge website*.`,
   {
     title: "Inputs",
     text: "Our model receives as input a location, some depth, and some time period and outputs a probability of there being sharks in that location, in that depth and at that time. You can choose the time and depth with these scales.",
-    position: "bottom-left",
+    position: "center-right",
     actionLabel: "Highlight toggle",
     action: () => {
       // pulse near the sidebar area where the SharkMap controls live
@@ -37,16 +37,7 @@ Take a look at our sources in the *NASA Space Apps Challenge website*.`,
         color: "rgba(99,102,241,0.9)",
         duration: 1.4,
       });
-        const halo2 = createPulseHalo({
-        id: 'sharkmap-accessibility-toggle-2',
-            x: "50%",
-            y: "50%",
-            size: 140,
-            color: "rgba(99,102,241,0.9)",
-            duration: 1.4,
-        });
-      // return the halo so the Slides component can destroy it when the slide is skipped
-      return [halo, halo2];
+      return [halo];
     },
   },
   {
@@ -148,7 +139,7 @@ Take a look at our sources in the *NASA Space Apps Challenge website*.`,
   },
   {
     title: "End of the tutorial",
-    text: "Thank you for using SharkSeer! We hope you find it useful and educational :)",
+    text: "Thank you for using Shark Seer! We hope you find it useful and educational :)",
     position: "center",
   },
 ];

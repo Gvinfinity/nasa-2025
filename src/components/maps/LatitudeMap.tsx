@@ -476,26 +476,28 @@ export default function MapLatitude({
           onChange={(e) => setDisplayDepth(Number(e.target.value))}
           style={{ height: 140 }}
           aria-label="Depth (m)"
+          className="rounded-lg bg-white/80 cursor-pointer"
         />
       </div>
       
-        <div  className="absolute left-12 right-12 bottom-2 z-2002 px-2 py-4 rounded-2xl bg-blue-900/60">
-          <div className="flex items-center gap-12 ">
+        <div  className="absolute left-12 right-12 bottom-2 z-2002 px-3 py-0 rounded-2xl text-black bg-zinc-400/60">
+          <div className="flex items-center gap-6 ">
             <input
               type="range"
               min={0}
               max={TOTAL_MONTHS - 1}
               value={displayMonth}
               onChange={(e) => setDisplayMonth(Number(e.target.value))}
-              style={{ flex: 1 }}
+            style={{ flex: 1 }}
+            className="rounded-lg bg-white/80 cursor-pointer"
             />
 
           </div>
 
           {/* year labels above the slider + proportional month labels underneath */}
-          <div style={{ position: 'relative', height: 36, marginTop: 6 }}>
+          <div className="relative h-2 mt-6">
             {/* Years (2020..2024) positioned proportionally above the slider */}
-            <div style={{ position: 'absolute', left: 6, right: 6, top: -35, height: 18 }}>
+            <div className="absolute left-6 right-6 bottom-[50px] h-4">
               {Array.from({ length: 5 }).map((_, yi) => {
                 const year = START_YEAR + yi;
                 const pct = (yi / (5 - 1)) * 100; // 0..100 over five years
@@ -507,10 +509,10 @@ export default function MapLatitude({
                       left: `calc(${pct}% )`,
                       transform: 'translateX(-50%)',
                       top: 0,
-                      color: 'rgba(255,255,255,0.85)',
                       fontSize: 12,
                       fontWeight: 600,
                     }}
+                    className="text-white"
                   >
                     {year}
                   </div>
@@ -519,7 +521,7 @@ export default function MapLatitude({
             </div>
 
             {/* proportional month labels: positioned across the full monthIndex range */}
-            <div style={{ position: 'absolute', left: 6, right: 6, top: 6, height: 24 }}>
+            <div style={{ position: 'absolute', left: 6, right: 6, top: -20, height: 5 }}>
               {Array.from({ length: 12 }).map((_, i) => {
                 const pct = (i / (12 - 1)) * 100; // 0..100
                 const monthIdx = Math.round((i / (12 - 1)) * (TOTAL_MONTHS - 1));
@@ -531,9 +533,8 @@ export default function MapLatitude({
                       position: 'absolute',
                       left: `calc(${pct}% )`,
                       transform: 'translateX(-50%)',
-                      top: 0,
-                      color: 'rgba(255,255,255,0.7)',
-                      fontSize: 12,
+                      fontSize: 14,
+                      fontWeight: 500,
                     }}
                   >
                     {m}
