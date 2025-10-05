@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { NotebookPen } from "lucide-react";
 import { Slides } from '../../ui/Slides';
-import { TUTORIAL_SLIDES } from '../../../mock/tutorialSlides';
+import { TUTORIAL_SLIDES } from '../../../data/mock/tutorialSlides';
 
 export const Tutorial = () => {
   const [open, setOpen] = useState(false);

@@ -1,13 +1,16 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useContext } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { setPulseHaloDebug, clearAllPulseHalos } from './pulseHalo';
+import { SidebarContext } from '../Sidebar/Sidebar';
 
 export type Slide = {
   title: string;
   text: string;
-  position?: 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left' | 'center';
+  position?: 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left' | 'center' | 'center-left' | 'center-right';
+  // optionally request a sidebar tab to open while this slide is active
+  sidebarTab?: 'knowledgehub' | 'sharkmap' | 'predict' | 'meet' | null;
   action?: () => void;
   actionLabel?: string;
 };
@@ -22,12 +25,15 @@ const positionToClass: Record<NonNullable<Slide['position']>, string> = {
   'top-left': 'top-4 left-4',
   'bottom-right': 'bottom-4 right-4',
   'bottom-left': 'bottom-4 left-4',
-  'center': 'inset-0 flex items-center justify-center'
+  'center': 'inset-0 flex items-center justify-center',
+  'center-left': 'inset-y-0 left-4 flex items-center',
+  'center-right': 'inset-y-0 right-4 flex items-center',
 };
 
 export function Slides({ slides, onClose }: SlidesProps) {
   const [index, setIndex] = useState(0);
   const cur = slides[index];
+  const sidebar = useContext(SidebarContext);
   const [portalEl, setPortalEl] = useState<HTMLElement | null>(null);
   const actionCleanup = useRef<null | (() => void)>(null);
   const lastRunRef = useRef<Record<number, number>>({});
@@ -81,7 +87,7 @@ export function Slides({ slides, onClose }: SlidesProps) {
               <div className="flex-1 min-w-0">
                 <h3 className="text-lg font-semibold">{cur.title}</h3>
                 <div className="mt-2 text-sm opacity-90 max-h-[45vh] overflow-auto">
-                  {cur.text}
+                  <div style={{ whiteSpace: 'pre-wrap' }}>{cur.text}</div>
                 </div>
               </div>
               <div className="flex flex-col items-end gap-2">
@@ -137,6 +143,16 @@ export function Slides({ slides, onClose }: SlidesProps) {
     try { clearAllPulseHalos(); } catch { /* ignore */ }
 
     if (!cur) return;
+    // If the slide explicitly includes a `sidebarTab` property, respect it.
+    // (This lets slides request `sidebarTab: 'sharkmap'` to open the tab,
+    // or `sidebarTab: null` to explicitly close. If the property is absent,
+    // do nothing so we don't accidentally close tabs between slides.)
+    if (sidebar && typeof sidebar.openTab === 'function' && Object.prototype.hasOwnProperty.call(cur, 'sidebarTab')) {
+      try {
+        console.debug('[Slides] requesting openTab', cur.sidebarTab);
+        sidebar.openTab(cur.sidebarTab as any);
+      } catch { /* ignore */ }
+    }
     if (cur.action) {
 
       // avoid immediate duplicate runs (e.g., StrictMode double-invoke) by ignoring runs within 500ms
@@ -168,6 +184,8 @@ export function Slides({ slides, onClose }: SlidesProps) {
         try { actionCleanup.current(); } catch { /* ignore */ }
         actionCleanup.current = null;
       }
+      // Do not automatically close sidebar tabs on slide change.
+      // Sidebar stays as last requested by a slide until a later slide explicitly requests a different value.
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [index, slides]);

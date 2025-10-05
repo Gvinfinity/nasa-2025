@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, createContext } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sharkmap } from "./components/Sharkmap";
 import { KnowledgeHub } from "./components/KnowledgeHub/KnowledgeHub";
@@ -9,6 +9,10 @@ import { MeetTheDevelopers } from "./components/MeetTheDevelopers";
 interface SidebarProps {
   children?: React.ReactNode;
 }
+
+type OpenTabKey = 'knowledgehub' | 'sharkmap' | 'predict' | 'meet' | null;
+
+export const SidebarContext = createContext<{ openTab: (key: OpenTabKey) => void }>({ openTab: () => {} });
 
 export const Sidebar = ({ children }: SidebarProps) => {
   const [mapMode, setMapMode] = useState<"research" | "student">("research");
@@ -23,14 +27,28 @@ export const Sidebar = ({ children }: SidebarProps) => {
     : children;
 
   const [childrenSaved, setChildren] = useState<React.ReactNode | null>(null);
+  const [activeSidebarTab, setActiveSidebarTab] = useState<OpenTabKey>(null);
+
+  const openTab = (key: OpenTabKey) => {
+    console.debug('[Sidebar] openTab', key);
+    // knowledgehub is a special case that renders into the main content area
+    if (key === 'knowledgehub') {
+      setChildren(<KnowledgeHub setChildren={setChildren} />);
+    } else {
+      // other tabs keep the main content unchanged; we only record the active sidebar tab
+      setChildren(null);
+    }
+    setActiveSidebarTab(key);
+  };
 
   return (
-    <div className="flex">
+    <SidebarContext.Provider value={{ openTab }}>
+      <div className="flex">
       {/* Sidebar */}
       <aside className="w-72 h-screen bg-gradient-to-b from-blue-900 to-blue-950 text-white flex flex-col items-start p-4 shadow-2xl relative overflow-hidden overflow-y-auto">
         <nav className="flex flex-col gap-3 w-full text-sm mt-6">
           <div onClick={() => setChildren(null)}>
-            <Sharkmap setMapMode={setMapMode} enabled={enabled} setEnabled={setEnabled} />
+            <Sharkmap setMapMode={setMapMode} enabled={enabled} setEnabled={setEnabled} forcedOpen={activeSidebarTab === 'sharkmap'} />
           </div>
           <KnowledgeHub setChildren={setChildren} />
          <div onClick={() => setChildren(null)}>
@@ -67,6 +85,7 @@ export const Sidebar = ({ children }: SidebarProps) => {
           </motion.div>
         </AnimatePresence>
       </div>
-    </div>
+      </div>
+    </SidebarContext.Provider>
   );
 };

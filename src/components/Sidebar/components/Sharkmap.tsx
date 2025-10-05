@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Map, ChevronDown, Eye, SprayCan } from "lucide-react";
 import { usePalette } from "../../../contexts/PaletteContext";
@@ -8,14 +9,22 @@ type SharkmapProps = {
   setMapMode?: (m: "research" | "student") => void;
   enabled?: boolean;
   setEnabled?: (b: boolean) => void;
+  forcedOpen?: boolean;
 };
 
 export const Sharkmap = ({
   setMapMode,
   enabled,
   setEnabled,
+  forcedOpen,
 }: SharkmapProps) => {
   const [openMenu, setOpenMenu] = useState(false);
+
+  useEffect(() => {
+    // toggle menu based on forcedOpen so Slides can open/close the Sharkmap menu
+    if (forcedOpen) setOpenMenu(true);
+    else setOpenMenu(false);
+  }, [forcedOpen]);
 
   const subItemVariants = {
     hidden: { opacity: 0, y: -10 },
@@ -77,6 +86,8 @@ export const Sharkmap = ({
           <ChevronDown size={18} />
         </motion.div>
       </button>
+
+  {/* forcedOpen handled via effect */}
 
       <AnimatePresence>
         {openMenu && (

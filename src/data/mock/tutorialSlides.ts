@@ -1,5 +1,5 @@
-import type { Slide } from "../components/ui/Slides";
-import { createPulseHalo } from "../components/ui/pulseHalo";
+import type { Slide } from "../../components/ui/Slides";
+import { createPulseHalo } from "../../components/ui/pulseHalo";
 
 export const TUTORIAL_SLIDES: Slide[] = [
   {
@@ -20,12 +20,12 @@ export const TUTORIAL_SLIDES: Slide[] = [
 - Shark sightings
 
 Take a look at our sources in the *NASA Space Apps Challenge website*.`,
-  position: "top-right",
+  position: "center",
 },
   {
     title: "Inputs",
     text: "Our model receives as input a location, some depth, and some time period and outputs a probability of there being sharks in that location, in that depth and at that time. You can choose the time and depth with these scales.",
-    position: "top-right",
+    position: "bottom-left",
     actionLabel: "Highlight toggle",
     action: () => {
       // pulse near the sidebar area where the SharkMap controls live
@@ -52,7 +52,7 @@ Take a look at our sources in the *NASA Space Apps Challenge website*.`,
   {
     title: "Prediction",
     text: "The output probability is presented on the map according to this scale.",
-      position: "top-right",
+      position: "center-right",
     action: () => {
       // pulse near the sidebar area where the SharkMap controls live
       const halo = createPulseHalo({
@@ -70,12 +70,13 @@ Take a look at our sources in the *NASA Space Apps Challenge website*.`,
   {
     title: "Flags",
     text: "You can click on the heat spots of the map to receive detailed information about them.",
-      position: "top-right",
+      position: "center-right",
   },
   {
     title: "Map Overlays",
     text: "You can overlay the map with the other variables we trained. Open the shark map tab and try clicking on the phytoplankton one!",
-      position: "bottom-right",
+      position: "center-right",
+    sidebarTab: 'sharkmap',
     action: () => {
       // pulse near the sidebar area where the SharkMap controls live
       const halo = createPulseHalo({
@@ -93,7 +94,7 @@ Take a look at our sources in the *NASA Space Apps Challenge website*.`,
   {
     title: "Map Overlays",
     text: "Notice how the map changes. This is due to the data from the overlay, whose scale is shown in the sidebar — in this case, phytoplankton presence.",
-      position: "bottom-right",
+      position: "center-right",
     action: () => {
       // pulse near the sidebar area where the SharkMap controls live
       const halo = createPulseHalo({
@@ -111,7 +112,7 @@ Take a look at our sources in the *NASA Space Apps Challenge website*.`,
   {
     title: "Options Menu",
     text: "In the Shark Mao section, you can also enable educational mode, colorblind mode, or aerosol mode. You can also restart this tutorial later if you need to.",
-      position: "bottom-right",
+      position: "center-right",
     action: () => {
       // pulse near the sidebar area where the SharkMap controls live
       const halo = createPulseHalo({
@@ -129,13 +130,14 @@ Take a look at our sources in the *NASA Space Apps Challenge website*.`,
   {
     title: "Our Tool",
     text: "This is the “Our tool” menu, with some information regarding our methodology. More information on the NASA Space Apps Challenge website.",
-      position: "bottom-right",
+      position: "center-right",
+    sidebarTab: null,
     action: () => {
       // pulse near the sidebar area where the SharkMap controls live
       const halo = createPulseHalo({
         id: 'sharkmap-accessibility-toggle',
         x: "5%",
-        y: "25%",
+        y: "26%",
         size: 140,
         color: "rgba(99,102,241,0.9)",
         duration: 1.4,
@@ -147,6 +149,6 @@ Take a look at our sources in the *NASA Space Apps Challenge website*.`,
   {
     title: "End of the tutorial",
     text: "Thank you for using SharkSeer! We hope you find it useful and educational :)",
-    position: "bottom-right",
+    position: "center",
   },
 ];
