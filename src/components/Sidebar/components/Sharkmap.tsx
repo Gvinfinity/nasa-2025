@@ -8,6 +8,8 @@ import { ModeToggleButton } from "./ModeToggleButton";
 type SharkmapProps = {
   setMapMode?: (m: "research" | "student") => void;
   forcedOpen?: boolean;
+  enabled?: boolean;
+  setEnabled?: (b: boolean) => void;
 };
 
 export const Sharkmap = ({ setMapMode, forcedOpen }: SharkmapProps) => {

@@ -4,7 +4,7 @@ import { Sharkmap } from "./components/Sharkmap";
 import { KnowledgeHub } from "./components/KnowledgeHub/KnowledgeHub";
 import { PredictSharkMovement } from "./components/PredictSharkMovement";
 import { Tutorial } from "./components/Tutorial";
-import { MeetTheTeam } from "./components/MeetTheDevelopers";
+import { MeetTheTeam } from "./components/MeetTheTeam";
 
 interface SidebarProps {
   children?: React.ReactNode;
@@ -68,7 +68,7 @@ export const Sidebar = ({ children }: SidebarProps) => {
             <KnowledgeHub setChildren={setChildren} />
             <PredictSharkMovement />
             <Tutorial />
-            <MeetTheTeam />
+            <MeetTheTeam forcedOpen={activeSidebarTab === "meet"} />
           </nav>
 
           {/* Decorative background */}
