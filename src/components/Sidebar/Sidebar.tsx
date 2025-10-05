@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Sharkmap } from "./components/Sharkmap";
 import { KnowledgeHub } from "./components/KnowledgeHub/KnowledgeHub";
 import { WhichSharkAreYou } from "./components/WhichSharkAreYou";
@@ -30,12 +30,22 @@ export const Sidebar = ({ children }: SidebarProps) => {
       {/* Sidebar */}
       <aside className="w-72 h-screen bg-gradient-to-b from-blue-900 to-blue-950 text-white flex flex-col items-start p-4 shadow-2xl relative overflow-hidden overflow-y-auto">
         <nav className="flex flex-col gap-3 w-full text-sm mt-6">
-          <Sharkmap setMapMode={setMapMode} enabled={enabled} setEnabled={setEnabled} />
+          <div onClick={() => setChildren(null)}>
+            <Sharkmap setMapMode={setMapMode} enabled={enabled} setEnabled={setEnabled} />
+          </div>
           <KnowledgeHub setChildren={setChildren} />
-          <WhichSharkAreYou />
-          <PredictSharkMovement />
-          <NasaDataUsed />
-          <MeetTheDevelopers />
+          <div onClick={() => setChildren(null)}>
+            <WhichSharkAreYou />
+          </div>
+         <div onClick={() => setChildren(null)}>
+           <PredictSharkMovement />
+         </div>
+        <div onClick={() => setChildren(null)}>
+         <NasaDataUsed />
+         </div>
+          <div onClick={() => setChildren(null)}>
+         <MeetTheDevelopers />
+      </div>
         </nav>
 
         {/* Decorative background */}
@@ -48,7 +58,18 @@ export const Sidebar = ({ children }: SidebarProps) => {
 
       {/* Main content */}
       <div className="flex-1 bg-black min-h-screen">
-        <div className="w-full h-full">{childrenSaved ?? injectedChildren}</div>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={childrenSaved ? "panel-custom" : "panel-default"}
+            className="w-full h-full"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.22, ease: "easeOut" }}
+          >
+            {childrenSaved ?? injectedChildren}
+          </motion.div>
+        </AnimatePresence>
       </div>
     </div>
   );
