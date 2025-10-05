@@ -32,10 +32,10 @@ const Slide2: React.FC = () => {
             transition={{ duration: 0.8, delay: 0.3 }}
           />
 
-          <TextWithSpeech
-            text="In the deep blue, sharks keep the ocean in balance — vital to
-          ecosystems, silent guardians of marine life."
-          />
+          <TextWithSpeech text={
+            "Sharks are a highly diverse group, comprising more than 500 species. They belong to the class Chondrichthyes, a group of fishes characterized by skeletons made primarily of cartilage. This class is divided into two subclasses: Elasmobranchii (which includes sharks, skates, rays, and sawfishes) and Holocephali (chimaeras, known informally as ghost sharks)"
+            
+          } />
         </motion.p>
       </div>
       {/* Navigation buttons */}

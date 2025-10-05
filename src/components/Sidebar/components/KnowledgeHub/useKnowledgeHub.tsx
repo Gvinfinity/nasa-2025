@@ -2,19 +2,40 @@ import { useCallback, useState } from "react";
 import { WhatAreSharks } from "./Stories/WhatAreSharks/WhatAreSharks";
 import { SharkLivesMatter } from "./Stories/SharkLivesMatter/SharkLivesMatter";
 import { SharksFoodChain } from "./Stories/SharksFoodChain/SharksFoodChain";
-import { ForagingHabitat } from "./Stories/ForagingHabitat/ForagingHabitat";
 
 export const useKnowledgeHub = (
   setChildren: (component: React.ReactNode) => void
 ) => {
   const [openMenu, setOpenMenu] = useState(false);
-
   const [knowledgeOptions, setKnowledgeOptions] = useState([
-    { name: "What are Sharks", icon: "🦈", selected: false },
-    { name: "Shark Lives Matter", icon: "❤️", selected: false },
-    { name: "Sharks in the Food Chain", icon: "🍽️", selected: false },
-    { name: "Foraging Habitat", icon: "🏠", selected: false },
-    { name: "Sharks are in Danger", icon: "⚠️", selected: false },
+    {
+      name: "What are Sharks",
+      image:
+        "https://upload.wikimedia.org/wikipedia/commons/5/56/White_shark.jpg",
+      description: "Learn about shark biology, behavior, and characteristics.",
+      selected: false,
+    },
+    {
+      name: "Shark Lives Matter",
+      image:
+        "https://upload.wikimedia.org/wikipedia/commons/f/f8/Carcharodon_carcharias_-_great_white_shark.jpg",
+      description: "Discover the importance of shark conservation efforts.",
+      selected: false,
+    },
+    {
+      name: "Sharks in the Food Chain",
+      image:
+        "https://upload.wikimedia.org/wikipedia/commons/a/a9/Reef_shark.jpg",
+      description: "Explore sharks' crucial role in marine ecosystems.",
+      selected: false,
+    },
+    {
+      name: "Sharks are in Danger",
+      image:
+        "https://upload.wikimedia.org/wikipedia/commons/9/9e/Hammerhead_shark.jpg",
+      description: "Learn about threats facing shark populations worldwide.",
+      selected: false,
+    },
   ]);
 
   const handleStoriesClick = useCallback(() => {
@@ -37,9 +58,6 @@ export const useKnowledgeHub = (
         case "Sharks in the Food Chain":
           setChildren(<SharksFoodChain />);
           break;
-        case "Foraging Habitat":
-          setChildren(<ForagingHabitat />);
-          break;
         case "Sharks are in Danger":
           setChildren(<SharkLivesMatter />); // Placeholder, replace with actual component
           break;
@@ -54,7 +72,7 @@ export const useKnowledgeHub = (
         }))
       );
     },
-    [ knowledgeOptions, setChildren]
+    [knowledgeOptions, setChildren]
   );
 
   return {
