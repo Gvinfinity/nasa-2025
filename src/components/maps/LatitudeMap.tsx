@@ -69,10 +69,8 @@ export default function MapLatitude({
   const effectiveMapMode = mapModeProp ?? "research";
 
   // Use ModelData context for monthIndex/depth and modelData
-  const { modelData, monthIndex, setMonthIndex, depth, setDepth, updateVisibleCoords, fetchModelData, deltaGroup } = useModelData();
-  const START_YEAR = 2020;
-  const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  const TOTAL_MONTHS = 60;
+  const { modelData, monthIndex, depth, updateVisibleCoords, fetchModelData, deltaGroup } = useModelData();
+  // month constants are managed by the ModelDataContext
 
   const { selectedView, colorblindMode } = usePalette();
   const activeView = selectedView ?? "default";
@@ -426,8 +424,7 @@ export default function MapLatitude({
   const lastCenterRef = useRef<{ lng: number; lat: number } | null>(null);
   // remember last deltaGroup serial so slider changes can force a fetch
   const lastDeltaGroupRef = useRef<string | null>(null);
-  // guard to avoid overlapping fetches
-  const inFlightRef = useRef(false);
+  // guard refs
 
   // shared sampling + fetch logic extracted so it can be invoked from
   // both map events and slider (deltaGroup) changes.
@@ -459,7 +456,7 @@ export default function MapLatitude({
 
   let lonStep = baseStep * reductionFactor;
   let latStep = baseStep * reductionFactor;
-  const MAX_POINTS = 500; // hard cap to keep payloads reasonable
+  const MAX_POINTS = 1000; // hard cap to keep payloads reasonable
 
   // helper to build pts for a given step, handling antimeridian
   const buildPtsForStep = (ls: number, lt: number) => {
@@ -535,32 +532,12 @@ export default function MapLatitude({
         if (center) lastCenterRef.current = { lng: center.lng, lat: center.lat };
         console.debug('[LatitudeMap] computed visible grid coords count:', pts.length, 'pixelStep:', pixelStep, 'deltaKeyChanged:', !dgUnchanged, 'centerChanged:', centerChanged);
 
-        if (inFlightRef.current) {
-          console.debug('[LatitudeMap] fetch in flight, skipping new fetch');
-          return;
-        }
-
-        inFlightRef.current = true;
-        try {
-          const payload = {
-            date: (() => {
-              const year = START_YEAR + Math.floor(monthIndex / 12);
-              const month = (monthIndex % 12) + 1;
-              return `${year.toString().padStart(4, '0')}-${month.toString().padStart(2, '0')}-01T00:00:00Z`;
-            })(),
-            depth,
-            view: selectedView,
-            coords: pts,
-            deltas: deltaGroup ?? undefined,
-          };
-          console.debug('[LatitudeMap] sending classifier request body (with deltas):', payload);
-          const res = await fetchModelData({ year: START_YEAR + Math.floor(monthIndex / 12), month: (monthIndex % 12) + 1, depth, coords: pts, deltas: deltaGroup ?? undefined });
-          console.log('[LatitudeMap] classifier response:', res);
-        } catch (err) {
-          console.error('[LatitudeMap] classifier call failed:', err);
-        } finally {
-          inFlightRef.current = false;
-        }
+        // NOTE: we intentionally do NOT call fetchModelData here to avoid
+        // triggering network fetches on map pan/zoom. The provider is
+        // responsible for fetching data; it listens to slider (deltaGroup)
+        // and time/depth changes. Here we only update visible coords so the
+        // provider (or other consumers) can decide whether to fetch.
+        console.debug('[LatitudeMap] updated visible coords (map-driven); fetch suppressed here');
       }
     } catch (err) {
       console.error('Failed to compute visible grid coords:', err);
@@ -611,9 +588,11 @@ export default function MapLatitude({
     };
   }, [mapObj, performSampleAndFetch]);
 
-  // Trigger sampling+fetch when deltaGroup changes (debounced)
+  // Trigger re-sampling when deltaGroup changes (debounced). We call
+  // performSampleAndFetch so visibleCoords are re-computed for the new
+  // slider state; actual data fetching is handled by the provider.
   useEffect(() => {
-    console.debug('[LatitudeMap] deltaGroup effect fired, mapObj?', !!mapObj, 'deltaGroup:', deltaGroup);
+    console.debug('[LatitudeMap] deltaGroup effect fired, re-sampling visible coords', 'deltaGroup:', deltaGroup);
     if (!mapObj) return;
     const id = setTimeout(() => { void performSampleAndFetch(); }, 250);
     return () => clearTimeout(id);
