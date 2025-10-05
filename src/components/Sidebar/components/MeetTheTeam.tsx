@@ -10,7 +10,8 @@ type MeetProps = {
 
 export const MeetTheTeam = ({ forcedOpen }: MeetProps) => {
   const [openMenu, setOpenMenu] = useState(false);
-  const { openTab } = useContext(SidebarContext);
+  const sidebarContext = useContext(SidebarContext);
+  const openTab = sidebarContext?.openTab;
 
   useEffect(() => {
     if (forcedOpen) setOpenMenu(true);

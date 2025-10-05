@@ -4,7 +4,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Map, ChevronDown } from "lucide-react";
 import { usePalette } from "../../../contexts/PaletteContext";
 import { ModeToggleButton } from "./ModeToggleButton";
-import { useSidebarContext } from "../Sidebar";
 
 type SharkmapProps = {
   setMapMode?: (m: "research" | "student") => void;

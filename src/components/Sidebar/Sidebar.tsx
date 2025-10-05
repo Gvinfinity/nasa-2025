@@ -11,7 +11,6 @@ import { SharksInDanger } from "./components/KnowledgeHub/Stories/SharksInDanger
 import MapLatitude from "../maps/LatitudeMap";
 import { PredictSharkMovements } from "../../pages/PredictSharkMovement/PredictSharkMovementPage";
 import { ModelInfo } from "../../pages/PredictSharkMovement/components/ModelInfo";
-import { TagInfo } from "../../pages/PredictSharkMovement/components/TagInfo";
 import { MeetTheTeam } from "./components/MeetTheTeam";
 
 interface SidebarProps {
@@ -139,13 +138,11 @@ export const Sidebar = ({ children }: SidebarProps) => {
         case "sharkmap":
           return <MapLatitude />;
         case "knowledgehub-menu":
-          return <KnowledgeHub setChildren={setCustomComponent} />;
+          return <KnowledgeHub />;
         case "prediction-menu":
           return <PredictSharkMovements />;
         case "model-info-story":
           return <ModelInfo />;
-        case "tag-info-story":
-          return <TagInfo />;
         case "tutorial":
           return <Tutorial />;
         case "meet-the-team":
@@ -343,7 +340,7 @@ export const Sidebar = ({ children }: SidebarProps) => {
             <KnowledgeHub />
             <PredictSharkMovement />
             <Tutorial />
-            <MeetTheTeam forcedOpen={activeSidebarTab === "meet"} />
+            <MeetTheTeam />
           </nav>
 
           {/* Decorative background */}
