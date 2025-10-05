@@ -33,7 +33,7 @@ const Slide2: React.FC = () => {
           />
 
           <TextWithSpeech
-            textToRead="More than xx% of shark species are in danger of extinction due to overfishing, habitat loss, ocean pollution and climate change. Considering their importance in our ecossystems, we must protect "
+            textToRead="More than 65% of shark species are in danger of extinction due to overfishing, habitat loss, ocean pollution and climate change. Considering their importance in our ecossystems, we must protect "
           />
         </motion.p>
       </div>

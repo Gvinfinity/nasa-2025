@@ -491,7 +491,6 @@ export default function MapLatitude({
             style={{ flex: 1 }}
             className="rounded-lg bg-white/80 cursor-pointer"
             />
-
           </div>
 
           {/* year labels above the slider + proportional month labels underneath */}
