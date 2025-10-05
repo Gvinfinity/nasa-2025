@@ -5,6 +5,7 @@ export interface ModelRequest {
     month: number;
     depth: number;
     view?: string;
+    coords: Array<[number, number]>;
 }
 
 export interface ModelResponse {

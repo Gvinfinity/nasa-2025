@@ -13,6 +13,8 @@ type DataPoint = [number, number, number, number]; // [lon, lat, weight, depth]
 
 type ModelContextType = {
   modelData: DataPoint[] | null;
+  visibleCoords: Array<[number, number]>;
+  updateVisibleCoords: (coords: Array<[number, number]>) => void;
   monthIndex: number;
   setMonthIndex: (v: number) => void;
   depth: number;
@@ -21,6 +23,8 @@ type ModelContextType = {
     year?: number;
     month?: number;
     depth?: number;
+    coords?: Array<[number, number]>;
+    acceptMock?: boolean;
   }) => Promise<DataPoint[]>;
 };
 
@@ -34,17 +38,19 @@ export const ModelDataProvider: React.FC<{ children: ReactNode }> = ({
   const TOTAL_MONTHS = (END_YEAR - START_YEAR + 1) * 12;
 
   const [modelData, setModelData] = useState<DataPoint[] | null>(null);
+  const [visibleCoords, setVisibleCoords] = useState<Array<[number, number]>>([]);
   const [monthIndex, setMonthIndex] = useState<number>(TOTAL_MONTHS - 1);
   const [depth, setDepth] = useState<number>(1000);
 
   const { selectedView } = usePalette();
 
   const fetchModelData = useCallback(
-    async (opts?: { year?: number; month?: number; depth?: number; acceptMock?: boolean }) => {
+    async (opts?: { year?: number; month?: number; depth?: number; coords?: Array<[number, number]>; acceptMock?: boolean }) => {
       try {
         const year = opts?.year ?? START_YEAR + Math.floor(monthIndex / 12);
         const month = opts?.month ?? (monthIndex % 12) + 1;
         const requestedDepth = opts?.depth ?? depth;
+        const coords = opts?.coords;
 
         let tuples: DataPoint[] = [];
 
@@ -54,8 +60,8 @@ export const ModelDataProvider: React.FC<{ children: ReactNode }> = ({
           tuples = (yearMap[month] || []).filter((t: DataPoint) => (t[3] ?? 0) <= requestedDepth);
         } else {
           try {
-            // call the statically imported API helper
-            const res = await fetchModelDataFromAPI({ year, month, depth: requestedDepth, view: selectedView });
+            // call the statically imported API helper (include coords if provided)
+            const res = await fetchModelDataFromAPI({ year, month, depth: requestedDepth, view: selectedView, coords });
             // normalize response: accept either { data: [...] } or an array
             let raw: any[] = [];
             if (Array.isArray(res)) raw = res as any[];
@@ -101,10 +107,17 @@ export const ModelDataProvider: React.FC<{ children: ReactNode }> = ({
     fetchModelData({ year, month, depth, acceptMock: true });
   }, [monthIndex, depth, selectedView, fetchModelData]);
 
+  const updateVisibleCoords = useCallback((coords: Array<[number, number]>) => {
+    setVisibleCoords(coords);
+    console.log('ModelDataProvider.visibleCoords updated:', coords);
+  }, []);
+
   return (
     <ModelDataContext.Provider
       value={{
         modelData: modelData,
+        visibleCoords,
+        updateVisibleCoords,
         monthIndex,
         setMonthIndex,
         depth,

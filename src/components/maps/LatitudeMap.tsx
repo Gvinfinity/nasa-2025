@@ -69,7 +69,7 @@ export default function MapLatitude({
   const effectiveMapMode = mapModeProp ?? "research";
 
   // Use ModelData context for monthIndex/depth and modelData
-  const { modelData, monthIndex, setMonthIndex, depth, setDepth } = useModelData();
+  const { modelData, monthIndex, setMonthIndex, depth, setDepth, updateVisibleCoords } = useModelData();
   const START_YEAR = 2020;
   const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   const TOTAL_MONTHS = 60;
@@ -415,6 +415,56 @@ export default function MapLatitude({
 
   const cursorStyle = cursor;
 
+  // local ref to the underlying MapLibre map instance
+  const [mapObj, setMapObj] = useState<any | null>(null);
+
+  const handleMapLoad = useCallback((e: any) => {
+    // react-map-gl passes an event with target as the map instance
+    const maybeMap = e?.target ?? e;
+    setMapObj(maybeMap);
+  }, []);
+
+  // compute visible coordinates when zoom >= 200x (scale = 2^zoom)
+  useEffect(() => {
+    if (!mapObj) return;
+    const zoom = (viewState?.zoom as number) ?? 0;
+    const scale = Math.pow(2, zoom);
+    const thresholdScale = 15;
+    if (scale < thresholdScale) {
+      updateVisibleCoords([]);
+      return;
+    }
+
+    try {
+      // sample the visible canvas at a pixel interval to produce lat/lon grid
+      const canvas = mapObj.getCanvas && mapObj.getCanvas();
+      const width = (canvas && (canvas.clientWidth || canvas.width)) || 800;
+      const height = (canvas && (canvas.clientHeight || canvas.height)) || 600;
+
+      // pixel step inversely proportional to zoom scale (more samples when zoomed in)
+      const pixelStep = Math.max(8, Math.round(800 / scale));
+
+      const pts: Array<[number, number]> = [];
+      for (let y = 0; y < height; y += pixelStep) {
+        for (let x = 0; x < width; x += pixelStep) {
+          try {
+            const ll = mapObj.unproject([x, y]);
+            if (ll && typeof ll.lng === "number" && typeof ll.lat === "number") {
+              pts.push([ll.lng, ll.lat]);
+            }
+          } catch (e) {
+            // ignore individual unproject failures
+          }
+        }
+      }
+
+      updateVisibleCoords(pts);
+      console.debug("[LatitudeMap] computed visible grid coords count:", pts.length, "pixelStep:", pixelStep);
+    } catch (err) {
+      console.error("Failed to compute visible grid coords:", err);
+    }
+  }, [viewState?.zoom, viewState?.latitude, viewState?.longitude, mapObj, modelData, updateVisibleCoords]);
+
   return (
     <div
       style={{
@@ -434,7 +484,7 @@ export default function MapLatitude({
         onViewStateChange={(e: any) => setViewState(e.viewState)}
         layers={layers}
       >
-        <Map reuseMaps mapStyle={mapStyle} mapLib={maplibregl as any} attributionControl={false} />
+        <Map reuseMaps mapStyle={mapStyle} mapLib={maplibregl as any} attributionControl={false} onLoad={handleMapLoad} />
       </DeckGL>
 
       {tooltip && (
