@@ -4,9 +4,12 @@ import Background from "../../../../../../Background";
 import { Button } from "../../../../../../Button";
 import { useSliderProvider } from "../../../../../../../contexts/SliderContext";
 import TextWithSpeech from "../../../../TextWithSpeech";
+import { useSidebarContext } from "../../../../../../Sidebar/Sidebar";
+import { StoriesMenu } from "../../StoriesMenu";
 
 const Slide3: React.FC = () => {
   const { prevSlide } = useSliderProvider();
+  const { setCustomComponent } = useSidebarContext();
 
   return (
     <motion.div
@@ -33,12 +36,14 @@ const Slide3: React.FC = () => {
           />
 
           <TextWithSpeech textToRead="Look at the image above to see how the ecological state of sharks has decreased throughout different time periods, especially after the pre-human period." />
-
         </motion.p>
       </div>
       {/* Navigation buttons */}
       <div className="bottom-8 left-0 right-0 flex w-full justify-between px-8 z-20 mb-8">
         <Button onClick={prevSlide}>Back</Button>
+        <Button onClick={() => setCustomComponent(<StoriesMenu />)}>
+          Return to Menu
+        </Button>
       </div>
     </motion.div>
   );
