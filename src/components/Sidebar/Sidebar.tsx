@@ -12,10 +12,13 @@ interface SidebarProps {
 }
 
 export const Sidebar = ({ children }: SidebarProps) => {
+  const [mapMode, setMapMode] = useState<"research" | "student">("research");
+  const [enabled, setEnabled] = useState<boolean>(false);
+
   const injectedChildren = (children as any)
     ? React.Children.map(children as any, (child: any) =>
         React.isValidElement(child)
-          ? React.cloneElement(child, { mapMode: "research" } as any)
+          ? React.cloneElement(child, { mapMode, enabled, setEnabled } as any)
           : child
       )
     : children;
@@ -27,7 +30,7 @@ export const Sidebar = ({ children }: SidebarProps) => {
       {/* Sidebar */}
       <aside className="w-72 h-screen bg-gradient-to-b from-blue-900 to-blue-950 text-white flex flex-col items-start p-4 shadow-2xl relative overflow-hidden overflow-y-auto">
         <nav className="flex flex-col gap-3 w-full text-sm mt-6">
-          <Sharkmap />
+          <Sharkmap setMapMode={setMapMode} enabled={enabled} setEnabled={setEnabled} />
           <KnowledgeHub setChildren={setChildren} />
           <WhichSharkAreYou />
           <PredictSharkMovement />

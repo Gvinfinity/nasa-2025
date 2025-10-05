@@ -1,14 +1,21 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Map, ChevronDown } from "lucide-react";
+import { Map, ChevronDown, Eye, SprayCan } from "lucide-react";
 import { usePalette } from "../../../contexts/PaletteContext";
 import { ModeToggleButton } from "./ModeToggleButton";
 
-export const Sharkmap = () => {
+type SharkmapProps = {
+  setMapMode?: (m: "research" | "student") => void;
+  enabled?: boolean;
+  setEnabled?: (b: boolean) => void;
+};
+
+export const Sharkmap = ({
+  setMapMode,
+  enabled,
+  setEnabled,
+}: SharkmapProps) => {
   const [openMenu, setOpenMenu] = useState(false);
-  const [currentMapMode, setCurrentMapMode] = useState<"research" | "student">(
-    "research"
-  );
 
   const subItemVariants = {
     hidden: { opacity: 0, y: -10 },
@@ -33,7 +40,7 @@ export const Sharkmap = () => {
     { name: "Biomass", icon: "🐟", selected: false, color: [255, 165, 0] },
   ]);
 
-  const { setSelectedView } = usePalette();
+  const { setSelectedView, colorblindMode, setColorblindMode } = usePalette();
 
   const handleItemClick = (i: number) => {
     const selectedOption = sharkMapOptions[i];
@@ -48,7 +55,9 @@ export const Sharkmap = () => {
   };
 
   const handleModeChange = (mode: "research" | "student") => {
-    setCurrentMapMode(mode);
+    // keep local indicator in sync and notify parent/sidebar
+    setSharkMapOptions((opts) => opts);
+    setMapMode?.(mode);
   };
 
   return (
@@ -82,9 +91,61 @@ export const Sharkmap = () => {
             transition={{ duration: 0.3 }}
             className="ml-4 mt-3 grid grid-cols-2 gap-2 overflow-hidden"
           >
-            {/* Map Toggles here!!! */}
+            {/* Map Toggles here: Mode, Enable, Colorblind */}
             <div className="col-span-2 mb-4">
-              <ModeToggleButton onModeChange={handleModeChange} />
+              <div className="flex flex-col gap-3">
+                <div className="flex items-center justify-between">
+                  <ModeToggleButton onModeChange={handleModeChange} />
+                </div>
+
+                <div className="flex w-full items-center justify-between">
+                  <div className="flex justify-between w-full gap-3">
+                    <div className="flex items-center space-x-2">
+                      <SprayCan className="text-white w-6 h-6" />
+                      <span className="text-sm">Enable</span>
+                    </div>
+
+                    <button
+                      aria-pressed={!!enabled}
+                      onClick={() => setEnabled?.(!enabled)}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors hover:opacity-80 focus:outline-none ${
+                        enabled ? "bg-green-600" : "bg-white/5"
+                      }`}
+                      title="Enable map features"
+                    >
+                      <span
+                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                          enabled ? "translate-x-6" : "translate-x-1"
+                        }`}
+                      />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex w-full items-center justify-between">
+                  <div className="flex justify-between w-full gap-3">
+                    <div className="flex items-center space-x-2">
+                      <Eye className="text-white w-6 h-6" />
+                      <span className="text-sm">Colorblind</span>
+                    </div>
+
+                    <button
+                      aria-pressed={!!colorblindMode}
+                      onClick={() => setColorblindMode?.(!colorblindMode)}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors hover:opacity-80 focus:outline-none ${
+                        colorblindMode ? "bg-green-600" : "bg-white/5"
+                      }`}
+                      title="Colorblind mode"
+                    >
+                      <span
+                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                          colorblindMode ? "translate-x-5" : "translate-x-0"
+                        }`}
+                      />
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
             {sharkMapOptions.map((opt, i) => (
               <motion.li

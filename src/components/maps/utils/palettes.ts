@@ -42,6 +42,49 @@ export const PALETTES: Record<string, number[][]> = {
     [253, 141, 60],
     [240, 59, 32],
   ],
+  // colorblind-friendly alternatives (cividis/viridis-like choices)
+  salinity_cb: [
+    [68, 1, 84],
+    [59, 82, 139],
+    [33, 145, 140],
+    [94, 201, 98],
+    [253, 231, 37],
+  ],
+  topography_cb: [
+    [253, 231, 37],
+    [94, 201, 98],
+    [33, 145, 140],
+    [59, 82, 139],
+    [68, 1, 84],
+  ],
+  biomass_cb: [
+    [255, 247, 236],
+    [254, 196, 79],
+    [254, 153, 41],
+    [217, 95, 14],
+    [153, 52, 4],
+  ],
+  temperature_cb: [
+    [68, 1, 84],
+    [59, 82, 139],
+    [33, 145, 140],
+    [94, 201, 98],
+    [253, 231, 37],
+    [254, 153, 41],
+    [204, 76, 2],
+  ],
+  currents_cb: [
+    [253, 231, 37],
+    [94, 201, 98],
+    [33, 145, 140],
+    [59, 82, 139],
+  ],
+  default_cb: [
+    [253, 231, 37],
+    [254, 204, 92],
+    [253, 141, 60],
+    [240, 59, 32],
+  ],
 };
 
 // Map a 0..1 value to an RGB tuple from the palette using linear interpolation between stops

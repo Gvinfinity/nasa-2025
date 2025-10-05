@@ -43,7 +43,6 @@ export default function GridMap({
 }: GridMapProps) {
   const { selectedView } = usePalette();
   const tuples: DataPoint[] = gridListToTuples(gridList, cols, rows, bbox);
-  const [enabled, setEnabled] = useState(false);
 
   const [viewState, setViewState] = useState<
     MapViewState & { transitionDuration?: number; transitionInterpolator?: any }
@@ -136,7 +135,7 @@ export default function GridMap({
           </select>
         </label> */}
       </div>
-      <MapBar enabled={enabled} setEnabled={setEnabled} />
+      <MapBar />
 
       <DeckGL
         style={{

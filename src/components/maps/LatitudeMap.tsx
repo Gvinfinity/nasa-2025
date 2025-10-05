@@ -46,6 +46,8 @@ interface LatitudeMapProps {
   mapStyle?: string;
   quizData?: Array<QuizPoint> | string;
   mapMode?: "research" | "student";
+  enabled?: boolean;
+  setEnabled?: (b: boolean) => void;
 }
 
 export default function MapLatitude({
@@ -56,11 +58,15 @@ export default function MapLatitude({
   mapStyle = MAP_STYLE,
   quizData = mockQuizPoints,
   mapMode: mapModeProp,
+  enabled: enabledProp,
+  setEnabled: setEnabledProp,
 }: LatitudeMapProps) {
   const [viewState, setViewState] = useState<
     MapViewState & { transitionDuration?: number; transitionInterpolator?: any }
   >(INITIAL_VIEW_STATE);
-  const [enabled, setEnabled] = useState(false);
+  const [localEnabled, setLocalEnabled] = useState(false);
+  const enabled = typeof enabledProp === "boolean" ? enabledProp : localEnabled;
+  const setEnabled = setEnabledProp ?? setLocalEnabled;
   // mapMode is now passed in as a prop from the Sidebar (or parent)
   const effectiveMapMode = mapModeProp ?? "research";
 
@@ -72,7 +78,7 @@ export default function MapLatitude({
   // const selectedYear = START_YEAR + Math.floor(monthIndex / 12);
   // const selectedMonth = (monthIndex % 12) + 1; // 1..12
 
-  const { selectedView } = usePalette();
+  const { selectedView, colorblindMode } = usePalette();
   const activeView = selectedView ?? "default";
   // map display names to internal palette keys
   const VIEW_TO_KEY: Record<string, string> = {
@@ -84,7 +90,8 @@ export default function MapLatitude({
     default: "default",
   };
   const activePaletteKey = VIEW_TO_KEY[activeView] ?? "default";
-  const activePalette = (PALETTES[activePaletteKey] || PALETTES.default) as number[][];
+  const cbKey = `${activePaletteKey}_cb`;
+  const activePalette = (colorblindMode && PALETTES[cbKey]) ? PALETTES[cbKey] : (PALETTES[activePaletteKey] || PALETTES.default);
 
   const points = useMemo(() => {
     if (!researchData || typeof researchData === "string") return [] as Array<{ position: number[]; weight: number }>;
@@ -417,7 +424,7 @@ export default function MapLatitude({
         cursor: cursorStyle,
       }}
     >
-      <MapBar enabled={enabled} setEnabled={setEnabled} />
+  <MapBar />
 
       <DeckGL
         style={{ zIndex: "0" }}
