@@ -7,7 +7,7 @@ import { useSliderProvider } from "../../../../../../../contexts/SliderContext";
 import Tooltip from "../../../../Tooltip";
 
 const Slide2: React.FC = () => {
-  const { prevSlide, nextSlide } = useSliderProvider();
+  const { nextSlide } = useSliderProvider();
 
   return (
     <motion.div

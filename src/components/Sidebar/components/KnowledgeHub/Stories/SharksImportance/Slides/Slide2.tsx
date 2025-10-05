@@ -6,7 +6,7 @@ import TextWithSpeech from "../../../../TextWithSpeech";
 import { useSliderProvider } from "../../../../../../../contexts/SliderContext";
 
 const Slide2: React.FC = () => {
-  const { prevSlide, nextSlide } = useSliderProvider();
+  const { nextSlide } = useSliderProvider();
 
   return (
     <motion.div

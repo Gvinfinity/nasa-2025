@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Map, ChevronDown, Eye, SprayCan } from "lucide-react";
+import { Map, ChevronDown } from "lucide-react";
 import { usePalette } from "../../../contexts/PaletteContext";
 import { ModeToggleButton } from "./ModeToggleButton";
 

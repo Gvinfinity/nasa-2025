@@ -2,11 +2,10 @@ import React from "react";
 import { motion } from "framer-motion";
 import Background from "../../../../../../Background";
 import { Button } from "../../../../../../Button";
-import TextWithSpeech from "../../../../TextWithSpeech";
 import { useSliderProvider } from "../../../../../../../contexts/SliderContext";
 
 const Slide3: React.FC = () => {
-  const { prevSlide, nextSlide } = useSliderProvider();
+  const { prevSlide } = useSliderProvider();
 
   return (
     <motion.div

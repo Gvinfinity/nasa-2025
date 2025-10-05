@@ -1,6 +1,5 @@
 import { useCallback, useState } from "react";
 import { WhatAreSharks } from "./Stories/WhatAreSharks/WhatAreSharks";
-import { SharkLivesMatter } from "./Stories/SharkLivesMatter/SharkLivesMatter";
 import { SharksFoodChain } from "./Stories/SharksFoodChain/SharksFoodChain";
 import { SharksImportance } from "./Stories/SharksImportance/SharksImportance";
 import { SharksInDanger } from "./Stories/SharksInDanger/SharksInDanger";

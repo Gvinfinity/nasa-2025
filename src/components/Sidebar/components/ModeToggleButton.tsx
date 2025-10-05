@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { BookOpenText } from "lucide-react";
 
 interface ModeToggleButtonProps {
   onModeChange?: (mode: "research" | "student") => void;
