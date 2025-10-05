@@ -24,24 +24,24 @@ const Slide2: React.FC = () => {
           transition={{ duration: 1, delay: 0.5 }}
         >
           <motion.img
-            src="/path/to/your/image.jpg"
+            src="https://upload.wikimedia.org/wikipedia/commons/8/8a/Surfacing_great_white_shark.jpg"
             alt="Sharks in ocean"
-            className="w-64 h-48 object-cover rounded-lg mb-6"
+            className="w-full h-72 object-cover rounded-lg mb-6"
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8, delay: 0.3 }}
           />
 
           <TextWithSpeech
-            text="In the deep blue, sharks keep the ocean in balance — vital to
-          ecosystems, silent guardians of marine life."
+            textToRead="Sharks are apex predators that balance marine ecosystems by controlling 
+            fish populations and maintaining the delicate food chain that keeps our 
+            oceans healthy."
           />
         </motion.p>
       </div>
       {/* Navigation buttons */}
-      <div className="bottom-8 left-0 right-0 flex w-full justify-between px-8 z-20 mb-8">
+      <div className="bottom-8 left-0 right-0 flex w-full justify-end px-8 z-20 mb-8">
         <Button onClick={prevSlide}>Back</Button>
-        <Button onClick={nextSlide}>Next</Button>
       </div>
     </motion.div>
   );

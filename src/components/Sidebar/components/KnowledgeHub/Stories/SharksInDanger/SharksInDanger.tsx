@@ -1,13 +1,13 @@
 import React from "react";
 import { SliderProvider } from "../../../../../../contexts/SliderContext";
-import Slide1 from "./Slides/Slide1";
 import Slide2 from "./Slides/Slide2";
+import Slide3 from "./Slides/Slide3";
 
 export const SharksInDanger: React.FC = () => {
   return (
       <SliderProvider>
-        <Slide1 />
         <Slide2 />
+        <Slide3 />
       </SliderProvider>
   );
 };

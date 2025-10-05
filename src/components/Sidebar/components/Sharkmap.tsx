@@ -101,7 +101,8 @@ export const Sharkmap = ({
                 <div className="flex w-full items-center justify-between">
                   <div className="flex justify-between w-full gap-3">
                     <div className="flex items-center space-x-2">
-                      <SprayCan className="text-white w-6 h-6" />
+                      {/* <SprayCan className="text-white w-6 h-6" /> */}
+                      <span className="text-2xl">💨</span>
                       <span className="text-sm">Aerosol</span>
                     </div>
 
@@ -125,7 +126,8 @@ export const Sharkmap = ({
                 <div className="flex w-full items-center justify-between">
                   <div className="flex justify-between w-full gap-3">
                     <div className="flex items-center space-x-2">
-                      <Eye className="text-white w-6 h-6" />
+                      {/* <Eye className="text-white w-6 h-6" /> */}
+                      <span className="text-2xl">👁️</span>
                       <span className="text-sm">Colorblind</span>
                     </div>
 

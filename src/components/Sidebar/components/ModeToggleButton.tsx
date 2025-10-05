@@ -22,7 +22,8 @@ export const ModeToggleButton = ({ onModeChange }: ModeToggleButtonProps) => {
   return (
     <div className="flex items-center space-x-2 w-full justify-between">
       <div className="flex items-center space-x-2">
-        <BookOpenText className="h-6 w-6 text-white" />
+        {/* <BookOpenText className="h-6 w-6 text-white/70" /> */}
+        <span className="text-xl">📚</span>
         <span className={`text-sm text-white`}>Student Mode</span>
       </div>
 

@@ -24,23 +24,18 @@ const Slide2: React.FC = () => {
           transition={{ duration: 1, delay: 0.5 }}
         >
           <motion.img
-            src="/path/to/your/image.jpg"
+            src="https://upload.wikimedia.org/wikipedia/commons/3/39/Tiger_shark.jpg"
             alt="Sharks in ocean"
-            className="w-64 h-48 object-cover rounded-lg mb-6"
+            className="w-full h-56 object-cover rounded-lg mb-6"
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8, delay: 0.3 }}
           />
 
-          <TextWithSpeech
-            text="In the deep blue, sharks keep the ocean in balance — vital to
-          ecosystems, silent guardians of marine life."
-          />
+          <TextWithSpeech textToRead="Beyond movies and folklore, sharks are vital actors in oceanic ecosystems. Some of these species, such as the Great White Shark and the Tiger Shark, are apex predators that play a crucial role as keystone species. A keystone species is define as an organism that has a disproportionately large effect on its environment relative to its abundance, essentially holding an ecosystem together. In other words, even with relatively low populations compared to other animals, keystone species play a critical role in regulating the populations of other species. Their disappearance can trigger a collapse in the food chain, causing significant imbalances in the ecosystem." />
         </motion.p>
       </div>
-      {/* Navigation buttons */}
-      <div className="bottom-8 left-0 right-0 flex w-full justify-between px-8 z-20 mb-8">
-        <Button onClick={prevSlide}>Back</Button>
+      <div className="absolute bottom-8 right-8 flex justify-end z-20">
         <Button onClick={nextSlide}>Next</Button>
       </div>
     </motion.div>

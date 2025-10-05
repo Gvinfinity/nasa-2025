@@ -33,7 +33,7 @@ const Slide2: React.FC = () => {
           />
 
           <TextWithSpeech
-            text="In the deep blue, sharks keep the ocean in balance — vital to
+            textToRead="In the deep blue, sharks keep the ocean in balance — vital to
           ecosystems, silent guardians of marine life."
           />
         </motion.p>

@@ -2,6 +2,8 @@ import { useCallback, useState } from "react";
 import { WhatAreSharks } from "./Stories/WhatAreSharks/WhatAreSharks";
 import { SharkLivesMatter } from "./Stories/SharkLivesMatter/SharkLivesMatter";
 import { SharksFoodChain } from "./Stories/SharksFoodChain/SharksFoodChain";
+import { SharksImportance } from "./Stories/SharksImportance/SharksImportance";
+import { SharksInDanger } from "./Stories/SharksInDanger/SharksInDanger";
 
 export const useKnowledgeHub = (
   setChildren: (component: React.ReactNode) => void
@@ -16,23 +18,23 @@ export const useKnowledgeHub = (
       selected: false,
     },
     {
-      name: "Shark Lives Matter",
+      name: "Importance of Sharks as keystone species",
       image:
-        "https://upload.wikimedia.org/wikipedia/commons/f/f8/Carcharodon_carcharias_-_great_white_shark.jpg",
+        "https://upload.wikimedia.org/wikipedia/commons/3/39/Tiger_shark.jpg",
       description: "Discover the importance of shark conservation efforts.",
       selected: false,
     },
     {
       name: "Sharks in the Food Chain",
       image:
-        "https://upload.wikimedia.org/wikipedia/commons/a/a9/Reef_shark.jpg",
+        "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Surfacing_great_white_shark.jpg/1024px-Surfacing_great_white_shark.jpg",
       description: "Explore sharks' crucial role in marine ecosystems.",
       selected: false,
     },
     {
       name: "Sharks are in Danger",
       image:
-        "https://upload.wikimedia.org/wikipedia/commons/9/9e/Hammerhead_shark.jpg",
+        "https://upload.wikimedia.org/wikipedia/commons/a/a1/Male_whale_shark_at_Georgia_Aquarium.jpg",
       description: "Learn about threats facing shark populations worldwide.",
       selected: false,
     },
@@ -52,14 +54,14 @@ export const useKnowledgeHub = (
         case "What are Sharks":
           setChildren(<WhatAreSharks />);
           break;
-        case "Shark Lives Matter":
-          setChildren(<SharkLivesMatter />);
+        case "Importance of Sharks as keystone species":
+          setChildren(<SharksImportance />);
           break;
         case "Sharks in the Food Chain":
           setChildren(<SharksFoodChain />);
           break;
         case "Sharks are in Danger":
-          setChildren(<SharkLivesMatter />); // Placeholder, replace with actual component
+          setChildren(<SharksInDanger />); // Placeholder, replace with actual component
           break;
         default:
           setChildren(<div>Default Component</div>);

@@ -4,37 +4,39 @@ import { motion, Variants } from "framer-motion";
 import { useSound } from "../../../contexts/SoundContext";
 
 interface TextWithSpeechProps {
-  text: string;
+  textToRead: string;
+  textToShow?: React.ReactNode;
   title?: string;
   voiceName?: string;
   hasBackground?: boolean;
 }
 
-const TextWithSpeech: React.FC<TextWithSpeechProps> = ({ 
-  text, 
-  title, 
-  voiceName, 
-  hasBackground = false 
+const TextWithSpeech: React.FC<TextWithSpeechProps> = ({
+  textToRead,
+  textToShow,
+  title,
+  voiceName,
+  hasBackground = false,
 }) => {
-  const { play, stop, isPlaying } = useSound(); // Use isPlaying from context
+  const { play, stop, isPlaying } = useSound();
 
   const handleSpeak = () => {
     console.log("isPlaying before toggle:", isPlaying);
     if (isPlaying) {
       stop();
     } else {
-      play(text, voiceName);
+      play(textToRead, voiceName);
     }
   };
 
   useEffect(() => {
-    if (text.trim()) {
-      console.log("Playing speech for text:", text);
-      play(text, voiceName);
+    if (textToRead.trim()) {
+      console.log("Playing speech for text:", textToRead);
+      play(textToRead, voiceName);
     }
     return () => stop();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [text, voiceName]);
+  }, [textToRead, voiceName]);
 
   // 🌀 Animations
   const cardVariants: Variants = {
@@ -83,14 +85,16 @@ const TextWithSpeech: React.FC<TextWithSpeechProps> = ({
           )}
         </motion.button>
       </div>
-      <motion.p
-        className="text-blue-100/90 leading-relaxed text-lg"
+
+      <motion.div
+        className="text-blue-100/90 leading-relaxed text-lg space-y-2"
         variants={textVariants}
         initial="hidden"
         animate="visible"
       >
-        {text}
-      </motion.p>
+        {/* Show provided ReactNode or fallback to textToRead */}
+        {textToShow || textToRead}
+      </motion.div>
     </>
   );
 
@@ -112,7 +116,7 @@ const TextWithSpeech: React.FC<TextWithSpeechProps> = ({
     >
       {content}
 
-      {/* Subtle glow effect */}
+      {/* Subtle animated glow */}
       <motion.div
         className="absolute inset-0 rounded-2xl pointer-events-none"
         animate={{
