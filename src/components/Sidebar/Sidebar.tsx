@@ -2,9 +2,8 @@ import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sharkmap } from "./components/Sharkmap";
 import { KnowledgeHub } from "./components/KnowledgeHub/KnowledgeHub";
-import { WhichSharkAreYou } from "./components/WhichSharkAreYou";
 import { PredictSharkMovement } from "./components/PredictSharkMovement";
-import { NasaDataUsed } from "./components/NasaDataUsed";
+import { Tutorial } from "./components/Tutorial";
 import { MeetTheDevelopers } from "./components/MeetTheDevelopers";
 
 interface SidebarProps {
@@ -34,14 +33,11 @@ export const Sidebar = ({ children }: SidebarProps) => {
             <Sharkmap setMapMode={setMapMode} enabled={enabled} setEnabled={setEnabled} />
           </div>
           <KnowledgeHub setChildren={setChildren} />
-          <div onClick={() => setChildren(null)}>
-            <WhichSharkAreYou />
-          </div>
          <div onClick={() => setChildren(null)}>
            <PredictSharkMovement />
          </div>
         <div onClick={() => setChildren(null)}>
-         <NasaDataUsed />
+         <Tutorial />
          </div>
           <div onClick={() => setChildren(null)}>
          <MeetTheDevelopers />
