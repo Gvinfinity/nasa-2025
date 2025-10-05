@@ -4,7 +4,7 @@ export interface ModelRequest {
   date: string;
   depth: number;
   view?: string;
-  coordinates?: Array<[number, number]>;
+  coords?: number[][];
 }
 
 export interface ModelResponse {

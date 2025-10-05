@@ -23,7 +23,7 @@ type ModelContextType = {
     year?: number;
     month?: number;
     depth?: number;
-    coords?: Array<[number, number]>;
+    coords?: number[][];
     acceptMock?: boolean;
   }) => Promise<DataPoint[]>;
 };
@@ -45,7 +45,7 @@ export const ModelDataProvider: React.FC<{ children: ReactNode }> = ({
   const { selectedView } = usePalette();
 
   const fetchModelData = useCallback(
-    async (opts?: { year?: number; month?: number; depth?: number; coords?: Array<[number, number]>; acceptMock?: boolean }) => {
+    async (opts?: { year?: number; month?: number; depth?: number; coords?: number[][]; acceptMock?: boolean }) => {
       try {
   const year = opts?.year ?? START_YEAR + Math.floor(monthIndex / 12);
   const month = opts?.month ?? (monthIndex % 12) + 1;
@@ -111,8 +111,12 @@ export const ModelDataProvider: React.FC<{ children: ReactNode }> = ({
 
   const updateVisibleCoords = useCallback((coords: Array<[number, number]>) => {
     setVisibleCoords(coords);
-    console.log('ModelDataProvider.visibleCoords updated:', coords);
-  }, []);
+    console.log('ModelDataProvider.visibleCoords updated (count):', coords.length);
+    // forward coords to fetchModelData so the API can use the zoomed area
+    const coordsList: number[][] = coords.map((c) => [c[0], c[1]]);
+    // call fetchModelData with coords; don't block UI on this
+    void fetchModelData({ coords: coordsList }).catch((e) => console.error('fetchModelData failed for coords:', e));
+  }, [fetchModelData]);
 
   return (
     <ModelDataContext.Provider
