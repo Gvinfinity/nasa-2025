@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { PALETTES } from "../utils/palettes";
 import { usePalette } from "../../../contexts/PaletteContext";
 
@@ -9,7 +9,6 @@ function MapGradient() {
     Temperature: "temperature",
     Clouds: "clouds",
     "Ocean Depth": "ocean depth",
-    Phytoplanktons: "phytoplanktons",
     default: "default",
   };
 

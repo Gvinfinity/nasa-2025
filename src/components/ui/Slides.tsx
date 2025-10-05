@@ -78,14 +78,14 @@ export function Slides({ slides, onClose }: SlidesProps) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -8, scale: 0.995 }}
             transition={{ duration: 0.28, ease: 'easeOut' }}
-            className={`max-w-md w-full bg-white/5 backdrop-blur-md border border-white/10 rounded-lg p-4 text-white shadow-xl`}
-            // ensure the panel still receives pointer events
-            style={{ maxHeight: '70vh', overflow: 'hidden', pointerEvents: 'auto' } as React.CSSProperties}
+            className={`max-w-full sm:max-w-md w-full bg-white/5 backdrop-blur-md border border-white/10 rounded-lg p-4 text-white shadow-xl`}
+            // ensure the panel still receives pointer events; allow scrolling so footer stays visible
+            style={{ maxHeight: '70vh', overflow: 'auto', pointerEvents: 'auto' } as React.CSSProperties}
           >
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1 min-w-0">
                 <h3 className="text-lg font-semibold">{cur.title}</h3>
-                <div className="mt-2 text-md opacity-90 max-h-[55vh] overflow-auto">
+                <div className="mt-2 text-md opacity-90 max-h-[40vh] sm:max-h-[55vh] overflow-auto">
                   <div style={{ whiteSpace: 'pre-wrap' }}>{cur.text}</div>
                 </div>
               </div>
@@ -102,19 +102,19 @@ export function Slides({ slides, onClose }: SlidesProps) {
               </div>
             </div>
 
-            <div className="flex items-center justify-between mt-4">
-              <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-4 gap-2">
+              <div className="flex flex-wrap gap-2">
                 <button
                   onClick={() => setIndex((i) => Math.max(0, i - 1))}
                   disabled={index === 0}
-                  className="px-3 py-1 rounded bg-white/6 disabled:opacity-40"
+                  className="px-3 py-1 rounded bg-white/6 disabled:opacity-40 whitespace-nowrap min-w-[64px]"
                 >
                   Back
                 </button>
                 <button
                   onClick={() => setIndex((i) => Math.min(slides.length - 1, i + 1))}
                   disabled={index === slides.length - 1}
-                  className="px-3 py-1 rounded bg-white/6 disabled:opacity-40"
+                  className="px-3 py-1 rounded bg-white/6 disabled:opacity-40 whitespace-nowrap min-w-[64px]"
                 >
                   Next
                 </button>

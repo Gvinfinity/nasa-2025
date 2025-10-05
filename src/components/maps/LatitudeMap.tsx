@@ -80,23 +80,8 @@ export default function MapLatitude({
   const effectiveMapMode = mapModeProp ?? "research";
 
   // Use ModelData context for monthIndex/depth and modelData
-  const { modelData, monthIndex, setMonthIndex, depth, setDepth, updateVisibleCoords, fetchModelData, deltaGroup } = useModelData();
-  const START_YEAR = 2020;
-  const MONTHS = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec",
-  ];
-  const TOTAL_MONTHS = 60;
+  const { modelData, monthIndex, depth, updateVisibleCoords, fetchModelData, deltaGroup } = useModelData();
+  // month constants are managed by the ModelDataContext
 
   const { selectedView, colorblindMode } = usePalette();
   const activeView = selectedView ?? "default";
@@ -105,7 +90,6 @@ export default function MapLatitude({
     Temperature: "temperature",
     Clouds: "clouds",
     "Ocean Depth": "ocean depth",
-    Phytoplanktons: "phytoplanktons",
     default: "default",
   };
   const activePaletteKey = VIEW_TO_KEY[activeView] ?? "default";
@@ -294,12 +278,27 @@ export default function MapLatitude({
       pickable: true,
       radiusUnits: "pixels",
       getPosition: (d) => d.position,
-      getRadius: (_d: any) => 4,
+      // Larger, softer halos: radius scaled up and alpha reduced for diffusion
+      getRadius: (d: any) => {
+        const weight = (d && d.weight) || 0;
+        // Reduce base so halos are smaller overall; weight affects size but less aggressively
+        const base = 3 + Math.min(8, Math.max(0, weight / 4));
+        // shrink with zoom: higher zoom -> smaller visual radius
+        const z = (viewState && (viewState.zoom as number)) || 1;
+        const zoomScale = Math.max(0.35, 1 / (Math.pow(2, Math.max(0, z - 3.5))));
+        return Math.round(base * zoomScale);
+      },
+      radiusMinPixels: 2,
       getFillColor: (d) => {
+        // Normalize weight to [0..1]. We assume weights are roughly in 0..10
+        // range; clamp to be defensive. Lower weights produce lower alpha.
         const t = Math.max(0, Math.min(1, (d.weight || 0) / 10));
         const [r, g, b] = colorForValue(activePalette, t);
-        return [r, g, b, 200];
+        // Alpha: range from ~30 (low weight) up to ~220 (high weight)
+        const alpha = Math.round(30 + t * 190);
+        return [r, g, b, alpha];
       },
+      opacity: 0.7,
       onClick: onDotClick,
       onHover: makeHoverHandler((obj: any, info: any) => {
         const lon =
@@ -355,11 +354,11 @@ export default function MapLatitude({
         // halo size derived from icon base size and pulse, scaled by zoom
         getRadius: (_d: any) => {
           const width = (iconMapping?.flag?.width as number) ?? 64;
-          const baseIcon = Math.max(16, Math.floor(width / 0.75));
-          // make halo larger than icon to be an easier target
-          const baseHalo = Math.max(6, Math.floor(baseIcon * 0.4));
+          const baseIcon = Math.max(12, Math.floor(width / 1.0));
+          // make halo slightly larger than icon but smaller than before
+          const baseHalo = Math.max(4, Math.floor(baseIcon * 0.25));
           // pulse independent of zoom
-          const radius = Math.round(baseHalo * (1 + pulse * 0.12));
+          const radius = Math.round(baseHalo * (1 + pulse * 0.08));
           return radius;
         },
         radiusUnits: "pixels",
@@ -459,8 +458,7 @@ export default function MapLatitude({
   const lastCenterRef = useRef<{ lng: number; lat: number } | null>(null);
   // remember last deltaGroup serial so slider changes can force a fetch
   const lastDeltaGroupRef = useRef<string | null>(null);
-  // guard to avoid overlapping fetches
-  const inFlightRef = useRef(false);
+  // guard refs
 
   // shared sampling + fetch logic extracted so it can be invoked from
   // both map events and slider (deltaGroup) changes.
@@ -469,21 +467,78 @@ export default function MapLatitude({
     try {
       const zoom = mapObj.getZoom?.() ?? (viewState?.zoom as number) ?? 0;
       console.debug('[LatitudeMap] performSampleAndFetch - zoom:', zoom);
-      const scale = Math.pow(2, zoom);
-      const canvas = mapObj.getCanvas && mapObj.getCanvas();
-      const width = (canvas && (canvas.clientWidth || canvas.width)) || 800;
-      const height = (canvas && (canvas.clientHeight || canvas.height)) || 600;
-      const pixelStep = Math.max(8, Math.round(800 / scale));
+  // no canvas size needed for anchored geographic grid sampling
+  // Anchored geographic grid sampling (Option B): compute lon/lat points from
+  // a fixed-degree grid aligned to a global origin. This guarantees that
+  // zooming only changes visual size, not which geographic sample points are
+  // chosen. We coarsen the grid step (doubling) until the number of points
+  // is below MAX_POINTS to avoid huge payloads.
+  
+  // initial grid step in degrees (base). We'll adapt the grid coarseness
+  // based on the current zoom level: coarser when zoomed out, finer when
+  // zoomed in. This reduces points on wide views and preserves detail when
+  // the user zooms in.
+  const baseStep = 0.05; // degrees
+  let reductionFactor = 3.25; // default modest reduction
+  if (typeof zoom === 'number') {
+    if (zoom < 2) reductionFactor = 3.0; // very zoomed out -> coarse
+    else if (zoom < 4) reductionFactor = 2.0; // wide -> coarse
+    else if (zoom < 6) reductionFactor = 2.5; // mid -> moderate
+    else if (zoom < 10) reductionFactor = 1.5; // close -> moderate
+    else reductionFactor = 0.75; // close -> full detail
+  }
 
-      const pts: Array<[number, number]> = [];
-      for (let y = 0; y < height; y += pixelStep) {
-        for (let x = 0; x < width; x += pixelStep) {
-          try {
-            const ll = mapObj.unproject([x, y]);
-            if (ll && typeof ll.lng === 'number' && typeof ll.lat === 'number') pts.push([ll.lng, ll.lat]);
-          } catch {}
+  let lonStep = baseStep * reductionFactor;
+  let latStep = baseStep * reductionFactor;
+  const MAX_POINTS = 1000; // hard cap to keep payloads reasonable
+
+  // helper to build pts for a given step, handling antimeridian
+  const buildPtsForStep = (ls: number, lt: number) => {
+    const out: Array<[number, number]> = [];
+    try {
+      const bounds = mapObj.getBounds?.();
+      if (!bounds) return out;
+      // MapLibre LngLatBounds supports getWest/getSouth/getEast/getNorth
+      let west = bounds.getWest?.();
+      let south = bounds.getSouth?.();
+      let east = bounds.getEast?.();
+      let north = bounds.getNorth?.();
+
+      if ([west, south, east, north].some((v) => typeof v !== 'number')) return out;
+
+      // normalize to -180..180 for iteration; if crossing antimeridian, we'll
+      // treat east as > west by adding 360 to east
+      if (east < west) east += 360;
+
+      const startLon = Math.floor(west / ls) * ls;
+      const startLat = Math.floor(south / lt) * lt;
+
+      for (let lat = startLat; lat <= north; lat = Math.round((lat + lt) * 1e12) / 1e12) {
+        if (lat < -90 || lat > 90) continue;
+        for (let lon = startLon; lon <= east; lon = Math.round((lon + ls) * 1e12) / 1e12) {
+          // wrap lon back to -180..180 range for the payload
+          let outLon = lon;
+          if (outLon > 180) outLon = ((outLon + 180) % 360) - 180;
+          out.push([outLon, lat]);
         }
       }
+    } catch (e) {
+      // fall through to return empty
+    }
+    return out;
+  };
+
+  // build and coarsen until under MAX_POINTS (or until step grows large)
+  let pts = buildPtsForStep(lonStep, latStep);
+  let attempts = 0;
+  while (pts.length > MAX_POINTS && attempts < 8) {
+    lonStep *= 2;
+    latStep *= 2;
+    pts = buildPtsForStep(lonStep, latStep);
+    attempts += 1;
+  }
+
+  const pixelStep = null; // keep for debug message compatibility below
 
       // Determine whether we should fetch: either pts count changed OR
       // the slider-driven deltaGroup changed since the last fetch OR
@@ -511,32 +566,12 @@ export default function MapLatitude({
         if (center) lastCenterRef.current = { lng: center.lng, lat: center.lat };
         console.debug('[LatitudeMap] computed visible grid coords count:', pts.length, 'pixelStep:', pixelStep, 'deltaKeyChanged:', !dgUnchanged, 'centerChanged:', centerChanged);
 
-        if (inFlightRef.current) {
-          console.debug('[LatitudeMap] fetch in flight, skipping new fetch');
-          return;
-        }
-
-        inFlightRef.current = true;
-        try {
-          const payload = {
-            date: (() => {
-              const year = START_YEAR + Math.floor(monthIndex / 12);
-              const month = (monthIndex % 12) + 1;
-              return `${year.toString().padStart(4, '0')}-${month.toString().padStart(2, '0')}-01T00:00:00Z`;
-            })(),
-            depth,
-            view: selectedView,
-            coords: pts,
-            deltas: deltaGroup ?? undefined,
-          };
-          console.debug('[LatitudeMap] sending classifier request body (with deltas):', payload);
-          const res = await fetchModelData({ year: START_YEAR + Math.floor(monthIndex / 12), month: (monthIndex % 12) + 1, depth, coords: pts, deltas: deltaGroup ?? undefined });
-          console.log('[LatitudeMap] classifier response:', res);
-        } catch (err) {
-          console.error('[LatitudeMap] classifier call failed:', err);
-        } finally {
-          inFlightRef.current = false;
-        }
+        // NOTE: we intentionally do NOT call fetchModelData here to avoid
+        // triggering network fetches on map pan/zoom. The provider is
+        // responsible for fetching data; it listens to slider (deltaGroup)
+        // and time/depth changes. Here we only update visible coords so the
+        // provider (or other consumers) can decide whether to fetch.
+        console.debug('[LatitudeMap] updated visible coords (map-driven); fetch suppressed here');
       }
     } catch (err) {
       console.error('Failed to compute visible grid coords:', err);
@@ -555,38 +590,43 @@ export default function MapLatitude({
     } catch (e) {}
   }, []);
 
-  // Use maplibre event-driven sampling instead of relying on viewState effects.
-  // This runs when the user finishes interactions (moveend/zoomend) and is
-  // debounced to avoid excessive sampling during continuous interactions.
+  // Use maplibre event-driven sampling: only trigger on panning (moveend).
+  // We intentionally avoid triggering sampling on zoom so that zooming only
+  // affects visual size (radius) and does not re-sample coords which can
+  // produce new points and the "multiplying" UX the user reported.
   useEffect(() => {
     if (!mapObj) return;
 
-    let debounceId: any = null;
+    let moveDebounce: any = null;
 
-    const handler = () => {
-      if (debounceId) clearTimeout(debounceId);
-      debounceId = setTimeout(() => { void performSampleAndFetch(); }, 250);
+    const moveHandler = () => {
+      if (moveDebounce) clearTimeout(moveDebounce);
+      moveDebounce = setTimeout(() => {
+        // always run sample on moveend (panning)
+        void performSampleAndFetch();
+      }, 250);
     };
 
     try {
-      mapObj.on?.('moveend', handler);
-      mapObj.on?.('zoomend', handler);
+      mapObj.on?.('moveend', moveHandler);
     } catch (e) {
       // ignore if mapObj doesn't support event API
     }
 
     // run once to sample current view
-    handler();
+    moveHandler();
 
     return () => {
-      if (debounceId) clearTimeout(debounceId);
-      try { mapObj.off?.('moveend', handler); mapObj.off?.('zoomend', handler); } catch (e) {}
+      if (moveDebounce) clearTimeout(moveDebounce);
+      try { mapObj.off?.('moveend', moveHandler); } catch (e) {}
     };
   }, [mapObj, performSampleAndFetch]);
 
-  // Trigger sampling+fetch when deltaGroup changes (debounced)
+  // Trigger re-sampling when deltaGroup changes (debounced). We call
+  // performSampleAndFetch so visibleCoords are re-computed for the new
+  // slider state; actual data fetching is handled by the provider.
   useEffect(() => {
-    console.debug('[LatitudeMap] deltaGroup effect fired, mapObj?', !!mapObj, 'deltaGroup:', deltaGroup);
+    console.debug('[LatitudeMap] deltaGroup effect fired, re-sampling visible coords', 'deltaGroup:', deltaGroup);
     if (!mapObj) return;
     const id = setTimeout(() => { void performSampleAndFetch(); }, 250);
     return () => clearTimeout(id);

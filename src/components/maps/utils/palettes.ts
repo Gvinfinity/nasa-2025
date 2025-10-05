@@ -99,13 +99,6 @@ export const PALETTES: Record<string, number[][]> = {
     [0, 0, 139],
     [0, 0, 80],
   ],
-  phytoplanktons: [
-    [144, 238, 144],
-    [60, 179, 113],
-    [34, 139, 34],
-    [0, 100, 0],
-    [0, 64, 0],
-  ],
   clouds_cb: [
     [253, 231, 37],
     [94, 201, 98],
@@ -120,13 +113,7 @@ export const PALETTES: Record<string, number[][]> = {
     [94, 201, 98],
     [253, 231, 37],
   ],
-  phytoplanktons_cb: [
-    [255, 247, 236],
-    [254, 196, 79],
-    [254, 153, 41],
-    [217, 95, 14],
-    [153, 52, 4],
-  ],
+  
 };
 
 // Map a 0..1 value to an RGB tuple from the palette using linear interpolation between stops
@@ -152,7 +139,6 @@ export const VIEWS = [
   "Biomass",
   "Clouds", 
   "Ocean Depth",
-  "Phytoplanktons",
 ];
 
 export default { PALETTES, colorForValue, VIEWS };

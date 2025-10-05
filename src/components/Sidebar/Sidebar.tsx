@@ -4,7 +4,6 @@ import { Sharkmap } from "./components/Sharkmap";
 import { KnowledgeHub } from "./components/KnowledgeHub/KnowledgeHub";
 import { PredictSharkMovement } from "./components/PredictSharkMovement";
 import { Tutorial } from "./components/Tutorial";
-import { MeetTheTeam } from "./components/MeetTheDevelopers";
 import { WhatAreSharks } from "./components/KnowledgeHub/Stories/WhatAreSharks/WhatAreSharks";
 import { SharksFoodChain } from "./components/KnowledgeHub/Stories/SharksFoodChain/SharksFoodChain";
 import { SharksImportance } from "./components/KnowledgeHub/Stories/SharksImportance/SharksImportance";
@@ -13,6 +12,7 @@ import MapLatitude from "../maps/LatitudeMap";
 import { PredictSharkMovements } from "../../pages/PredictSharkMovement/PredictSharkMovementPage";
 import { ModelInfo } from "../../pages/PredictSharkMovement/components/ModelInfo";
 import { TagInfo } from "../../pages/PredictSharkMovement/components/TagInfo";
+import { MeetTheTeam } from "./components/MeetTheTeam";
 
 interface SidebarProps {
   children?: React.ReactNode;
@@ -326,8 +326,7 @@ export const Sidebar = ({ children }: SidebarProps) => {
         <aside className="w-72 h-screen bg-gradient-to-b from-blue-900 to-blue-950 text-white flex flex-col items-start p-4 shadow-2xl relative overflow-hidden overflow-y-auto">
           <div className="flex items-center justify-center gap-3 h-fit">
             <img
-              src="/public/sharko.png"
-              alt="Sharko, the Shark Seer"
+              src="/sharko.png" alt="Sharko, the Shark Seer"
               className="w-20 h-20"
             />
             <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-100 via-cyan-300 to-blue-200 bg-clip-text text-transparent drop-shadow-[0_0_25px_rgba(59,130,246,0.3)]">
@@ -344,7 +343,7 @@ export const Sidebar = ({ children }: SidebarProps) => {
             <KnowledgeHub />
             <PredictSharkMovement />
             <Tutorial />
-            <MeetTheTeam />
+            <MeetTheTeam forcedOpen={activeSidebarTab === "meet"} />
           </nav>
 
           {/* Decorative background */}

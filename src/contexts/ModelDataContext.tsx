@@ -30,7 +30,6 @@ type ModelContextType = {
       deltaTemp?: number;
       deltaClouds?: number;
       deltaOceanDepth?: number;
-      deltaPhytoplankton?: number;
     } | null;
     acceptMock?: boolean;
   }) => Promise<DataPoint[]>;
@@ -53,7 +52,6 @@ export const ModelDataProvider: React.FC<{ children: ReactNode }> = ({
     deltaTemp: 0,
     deltaClouds: 0,
     deltaOceanDepth: 0,
-    deltaPhytoplankton: 0,
   });
 
   // Wrap setter to log updates (helps trace propagation from Sharkmap sliders)
@@ -70,7 +68,10 @@ export const ModelDataProvider: React.FC<{ children: ReactNode }> = ({
   const year = opts?.year ?? START_YEAR + Math.floor(monthIndex / 12);
   const month = opts?.month ?? (monthIndex % 12) + 1;
         const requestedDepth = opts?.depth ?? depth;
-        const coords = opts?.coords;
+  // prefer explicit coords passed by caller; otherwise use the
+  // last known visibleCoords sampled by the map. This ensures the
+  // provider won't call the API with an empty coords array.
+  const coords = opts?.coords ?? visibleCoords;
   // construct full ISO datetime (first day of month at midnight UTC) accepted by Python datetime
   const date = `${year.toString().padStart(4, '0')}-${month
     .toString()
@@ -79,10 +80,18 @@ export const ModelDataProvider: React.FC<{ children: ReactNode }> = ({
         let tuples: DataPoint[] = [];
 
         try {
+          // ensure we have coordinates to send; server returns 400 when none
+          const coordsToSend = coords ?? [];
+          if (!coordsToSend || coordsToSend.length === 0) {
+            console.debug('[ModelDataContext] no coords available - skipping API call');
+            setModelData([]);
+            return [];
+          }
+
           // call the statically imported API helper (include coords, date, and deltas)
           const deltasToSend = (opts && (opts as any).deltas) ? (opts as any).deltas : deltaGroup;
-          console.debug('[ModelDataContext] calling API with date, depth, view, coords length, deltas:', date, requestedDepth, selectedView, (coords ?? []).length, deltasToSend);
-          const res = await fetchModelDataFromAPI({ date, depth: requestedDepth, view: selectedView, coords: coords ?? [], deltas: deltasToSend });
+          console.debug('[ModelDataContext] calling API with date, depth, view, coords length, deltas:', date, requestedDepth, selectedView, coordsToSend.length, deltasToSend);
+          const res = await fetchModelDataFromAPI({ date, depth: requestedDepth, view: selectedView, coords: coordsToSend, deltas: deltasToSend });
           console.debug('[ModelDataContext] raw API response:', res);
           // normalize response: accept either { data: [...] } or an array
           let raw: any[] = [];
@@ -138,16 +147,23 @@ export const ModelDataProvider: React.FC<{ children: ReactNode }> = ({
         return [];
       }
     },
-    [monthIndex, depth, selectedView]
+    [monthIndex, depth, selectedView, deltaGroup]
   );
 
-  // Re-fetch when monthIndex, depth, or selectedView changes
+  // Re-fetch when monthIndex, depth, selectedView, deltaGroup change
+  // but only when we have visible coords from the map. This avoids
+  // sending an empty coords array to the backend on initial mount.
   useEffect(() => {
+    if (!visibleCoords || visibleCoords.length === 0) {
+      console.debug('[ModelDataContext] visibleCoords empty - skipping auto fetch');
+      return;
+    }
     // derive year/month
     const year = START_YEAR + Math.floor(monthIndex / 12);
     const month = (monthIndex % 12) + 1;
-    void fetchModelData({ year, month, depth });
-  }, [monthIndex, depth, selectedView, fetchModelData]);
+    // include current deltaGroup so slider-driven changes trigger a full refetch
+    void fetchModelData({ year, month, depth, deltas: deltaGroup, coords: visibleCoords });
+  }, [monthIndex, depth, selectedView, fetchModelData, visibleCoords, deltaGroup]);
 
   const updateVisibleCoords = useCallback((coords: Array<[number, number]>) => {
     setVisibleCoords(coords);

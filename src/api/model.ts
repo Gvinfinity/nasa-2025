@@ -4,7 +4,6 @@ export interface DeltaGroup {
   deltaTemp: number;
   deltaClouds: number;
   deltaOceanDepth: number;
-  deltaPhytoplankton: number;
 }
 
 export interface ClassifierDataRequest {

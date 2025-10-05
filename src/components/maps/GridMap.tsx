@@ -82,7 +82,6 @@ export default function GridMap({
       Temperature: tuples,
       Clouds: tuples,
       "Ocean Depth": tuples,
-      Phytoplanktons: tuples,
     } as const;
 
     const currentData = (selectedView && selectedView in viewData) 
