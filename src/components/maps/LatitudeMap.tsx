@@ -91,6 +91,30 @@ export default function MapLatitude({
     return (researchData as DataPoint[]).map((d) => ({ position: [d[0], d[1]], weight: d[2] }));
   }, [researchData]);
 
+  // local, debounced slider state to avoid rapid provider fetches
+  const [displayMonth, setDisplayMonth] = useState<number>(monthIndex);
+  const [displayDepth, setDisplayDepth] = useState<number>(depth);
+
+  // sync local display state when provider values change externally
+  useEffect(() => setDisplayMonth(monthIndex), [monthIndex]);
+  useEffect(() => setDisplayDepth(depth), [depth]);
+
+  // debounce month -> setMonthIndex
+  useEffect(() => {
+    const t = setTimeout(() => {
+      if (displayMonth !== monthIndex) setMonthIndex(displayMonth);
+    }, 350);
+    return () => clearTimeout(t);
+  }, [displayMonth, monthIndex, setMonthIndex]);
+
+  // debounce depth -> setDepth
+  useEffect(() => {
+    const t = setTimeout(() => {
+      if (displayDepth !== depth) setDepth(displayDepth);
+    }, 300);
+    return () => clearTimeout(t);
+  }, [displayDepth, depth, setDepth]);
+
   const { tooltip, makeHoverHandler, makeHoverHandlerSilent, cursor } = useMapTooltip();
 
   // dialog state for quiz questions
@@ -437,14 +461,14 @@ export default function MapLatitude({
 
       {/* Vertical depth slider on the right */}
       <div className="absolute bottom-[15%] rotate-[270deg] right-1 z-2003 flex items-center">
-        <div style={{ writingMode: 'vertical-rl',  color: 'white', fontSize: 11, opacity: 0.9 }}>{depth} m</div>
+        <div style={{ writingMode: 'vertical-rl',  color: 'white', fontSize: 11, opacity: 0.9 }}>{displayDepth} m</div>
         <input
           type="range"
           min={0}
           max={3000}
           step={10}
-          value={depth}
-          onChange={(e) => setDepth(Number(e.target.value))}
+          value={displayDepth}
+          onChange={(e) => setDisplayDepth(Number(e.target.value))}
           style={{ height: 140 }}
           aria-label="Depth (m)"
         />
@@ -456,8 +480,8 @@ export default function MapLatitude({
               type="range"
               min={0}
               max={TOTAL_MONTHS - 1}
-              value={monthIndex}
-              onChange={(e) => setMonthIndex(Number(e.target.value))}
+              value={displayMonth}
+              onChange={(e) => setDisplayMonth(Number(e.target.value))}
               style={{ flex: 1 }}
             />
 
