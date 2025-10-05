@@ -21,7 +21,7 @@ export const KnowledgeHub: React.FC<KnowledgeHubProps> = ({ setChildren }) => {
       {/* Header Button */}
       <button
         onClick={handleStoriesClick}
-        className="flex items-center justify-between gap-2 p-3 rounded-lg hover:bg-blue-800/40 transition-colors"
+        className="flex items-center justify-between gap-2 p-3 rounded-lg hover:bg-slate-800/60 transition-colors"
       >
         <div className="flex items-center gap-3">
           <BookOpen size={22} className="text-neutral-100" />
@@ -66,26 +66,23 @@ export const KnowledgeHub: React.FC<KnowledgeHubProps> = ({ setChildren }) => {
                   transition-colors duration-300 shadow-md
                   ${
                     opt.selected
-                      ? "bg-gradient-to-br from-amber-400/70 to-yellow-300/40 border-yellow-400 text-neutral-900 shadow-lg shadow-yellow-500/20"
-                      : "bg-gradient-to-br from-neutral-900/50 to-neutral-800/30 border-neutral-700 text-neutral-100 hover:from-neutral-800/60 hover:to-neutral-700/40"
+                      ? "bg-amber-600 border-amber-500 text-white shadow-lg"
+                      : "bg-slate-800/50 border-slate-700 text-neutral-100 hover:bg-slate-700/60"
                   }
                 `}
               >
                 {/* Left book spine */}
                 <div
                   className={`absolute left-0 top-0 h-full w-1 ${
-                    opt.selected ? "bg-yellow-300/70" : "bg-neutral-700/50"
+                    opt.selected ? "bg-amber-400" : "bg-slate-600"
                   }`}
                 />
-
-                {/* Page light reflection */}
-                <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent pointer-events-none"></div>
 
                 {/* Icon */}
                 {opt.icon && (
                   <span
                     className={`text-3xl mb-2 ${
-                      opt.selected ? "text-yellow-900" : "text-amber-200"
+                      opt.selected ? "text-white" : "text-amber-200"
                     }`}
                   >
                     {opt.icon}
@@ -95,7 +92,7 @@ export const KnowledgeHub: React.FC<KnowledgeHubProps> = ({ setChildren }) => {
                 {/* Title */}
                 <span
                   className={`text-sm font-medium tracking-wide text-center ${
-                    opt.selected ? "text-yellow-950" : "text-neutral-100/90"
+                    opt.selected ? "text-white" : "text-neutral-100/90"
                   }`}
                 >
                   {opt.name}
@@ -105,7 +102,7 @@ export const KnowledgeHub: React.FC<KnowledgeHubProps> = ({ setChildren }) => {
                 {opt.selected && (
                   <motion.div
                     layoutId="selectedIndicator"
-                    className="absolute bottom-2 right-3 w-2.5 h-2.5 bg-yellow-300 rounded-full shadow-inner"
+                    className="absolute bottom-2 right-3 w-2.5 h-2.5 bg-amber-300 rounded-full shadow-inner"
                   />
                 )}
               </motion.li>
