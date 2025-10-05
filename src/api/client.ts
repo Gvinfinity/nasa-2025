@@ -7,7 +7,7 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
   try {
     const method = (options.method || "GET").toUpperCase();
     const bodyPreview = options.body ? options.body : undefined;
-    console.debug(`[api] ${method} ${url}`, bodyPreview);
+    console.log(`[api] ${method} ${url}`, bodyPreview);
   } catch {
     // ignore logging failures
   }

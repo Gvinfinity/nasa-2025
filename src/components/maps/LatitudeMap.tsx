@@ -8,7 +8,7 @@ import { Map } from "react-map-gl/maplibre";
 import { DeckGL } from "@deck.gl/react";
 import { HeatmapLayer } from "@deck.gl/aggregation-layers";
 import { ScatterplotLayer, IconLayer, PolygonLayer } from "@deck.gl/layers";
-import { useCallback, useMemo, useState, useEffect } from "react";
+import { useCallback, useMemo, useState, useEffect, useRef } from "react";
 import { colorForValue, PALETTES } from "./utils/palettes";
 import useMapTooltip from "./utils/useMapTooltip";
 import { usePalette } from "../../contexts/PaletteContext";
@@ -69,7 +69,7 @@ export default function MapLatitude({
   const effectiveMapMode = mapModeProp ?? "research";
 
   // Use ModelData context for monthIndex/depth and modelData
-  const { modelData, monthIndex, setMonthIndex, depth, setDepth, updateVisibleCoords } = useModelData();
+  const { modelData, monthIndex, setMonthIndex, depth, setDepth, updateVisibleCoords, fetchModelData } = useModelData();
   const START_YEAR = 2020;
   const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   const TOTAL_MONTHS = 60;
@@ -404,6 +404,9 @@ export default function MapLatitude({
 
   // local ref to the underlying MapLibre map instance
   const [mapObj, setMapObj] = useState<any | null>(null);
+  // lightweight ref to remember last sampled point count to avoid
+  // emitting identical coords repeatedly
+  const lastPtsCountRef = useRef<number | null>(null);
 
   const handleMapLoad = useCallback((e: any) => {
     // react-map-gl passes an event with target as the map instance
@@ -411,46 +414,100 @@ export default function MapLatitude({
     setMapObj(maybeMap);
   }, []);
 
-  // compute visible coordinates when zoom >= 200x (scale = 2^zoom)
+  // Use maplibre event-driven sampling instead of relying on viewState effects.
+  // This runs when the user finishes interactions (moveend/zoomend) and is
+  // debounced to avoid excessive sampling during continuous interactions.
   useEffect(() => {
     if (!mapObj) return;
-    const zoom = (viewState?.zoom as number) ?? 0;
-    const scale = Math.pow(2, zoom);
-    const thresholdScale = 15;
-    if (scale < thresholdScale) {
-      updateVisibleCoords([]);
-      return;
-    }
 
-    try {
-      // sample the visible canvas at a pixel interval to produce lat/lon grid
-      const canvas = mapObj.getCanvas && mapObj.getCanvas();
-      const width = (canvas && (canvas.clientWidth || canvas.width)) || 800;
-      const height = (canvas && (canvas.clientHeight || canvas.height)) || 600;
+    let mounted = true;
+    let debounceId: any = null;
+    let inFlight = false;
+    const thresholdZoom = 2.6; // lower zoom threshold (≈ scale 6)
 
-      // pixel step inversely proportional to zoom scale (more samples when zoomed in)
-      const pixelStep = Math.max(8, Math.round(800 / scale));
+    const performSampleAndFetch = async () => {
+      if (!mounted) return;
+      try {
+        const zoom = mapObj.getZoom?.() ?? (viewState?.zoom as number) ?? 0;
+        console.log('[LatitudeMap] performSampleAndFetch - zoom:', zoom, 'thresholdZoom:', thresholdZoom);
+        if (zoom < thresholdZoom) {
+          updateVisibleCoords([]);
+          return;
+        }
 
-      const pts: Array<[number, number]> = [];
-      for (let y = 0; y < height; y += pixelStep) {
-        for (let x = 0; x < width; x += pixelStep) {
-          try {
-            const ll = mapObj.unproject([x, y]);
-            if (ll && typeof ll.lng === "number" && typeof ll.lat === "number") {
-              pts.push([ll.lng, ll.lat]);
-            }
-          } catch (e) {
-            // ignore individual unproject failures
+        const scale = Math.pow(2, zoom);
+        const canvas = mapObj.getCanvas && mapObj.getCanvas();
+        const width = (canvas && (canvas.clientWidth || canvas.width)) || 800;
+        const height = (canvas && (canvas.clientHeight || canvas.height)) || 600;
+        const pixelStep = Math.max(8, Math.round(800 / scale));
+
+        const pts: Array<[number, number]> = [];
+        for (let y = 0; y < height; y += pixelStep) {
+          for (let x = 0; x < width; x += pixelStep) {
+            try {
+              const ll = mapObj.unproject([x, y]);
+              if (ll && typeof ll.lng === 'number' && typeof ll.lat === 'number') pts.push([ll.lng, ll.lat]);
+            } catch {}
           }
         }
-      }
 
-      updateVisibleCoords(pts);
-      console.debug("[LatitudeMap] computed visible grid coords count:", pts.length, "pixelStep:", pixelStep);
-    } catch (err) {
-      console.error("Failed to compute visible grid coords:", err);
+        if (!lastPtsCountRef.current || lastPtsCountRef.current !== pts.length) {
+          updateVisibleCoords(pts);
+          lastPtsCountRef.current = pts.length;
+          console.log('[LatitudeMap] computed visible grid coords count:', pts.length, 'pixelStep:', pixelStep);
+
+          if (inFlight) {
+            console.log('[LatitudeMap] fetch in flight, skipping new fetch');
+            return;
+          }
+
+          inFlight = true;
+          try {
+            const payload = {
+              date: (() => {
+                const year = START_YEAR + Math.floor(monthIndex / 12);
+                const month = (monthIndex % 12) + 1;
+                return `${year.toString().padStart(4, '0')}-${month.toString().padStart(2, '0')}-01T00:00:00Z`;
+              })(),
+              depth,
+              view: selectedView,
+              coords: pts,
+            };
+            console.log('[LatitudeMap] sending classifier request body:', payload);
+            const res = await fetchModelData({ year: START_YEAR + Math.floor(monthIndex / 12), month: (monthIndex % 12) + 1, depth, coords: pts });
+            console.log('[LatitudeMap] classifier response:', res);
+          } catch (err) {
+            console.error('[LatitudeMap] classifier call failed:', err);
+          } finally {
+            inFlight = false;
+          }
+        }
+      } catch (err) {
+        console.error('Failed to compute visible grid coords:', err);
+      }
+    };
+
+    const handler = () => {
+      if (debounceId) clearTimeout(debounceId);
+      debounceId = setTimeout(() => { void performSampleAndFetch(); }, 250);
+    };
+
+    try {
+      mapObj.on?.('moveend', handler);
+      mapObj.on?.('zoomend', handler);
+    } catch (e) {
+      // ignore if mapObj doesn't support event API
     }
-  }, [viewState?.zoom, viewState?.latitude, viewState?.longitude, mapObj, modelData, updateVisibleCoords]);
+
+    // run once to sample current view
+    handler();
+
+    return () => {
+      mounted = false;
+      if (debounceId) clearTimeout(debounceId);
+      try { mapObj.off?.('moveend', handler); mapObj.off?.('zoomend', handler); } catch (e) {}
+    };
+  }, [mapObj, fetchModelData, monthIndex, depth, selectedView, updateVisibleCoords, viewState]);
 
   return (
     <div
