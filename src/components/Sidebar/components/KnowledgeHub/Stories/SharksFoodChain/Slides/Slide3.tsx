@@ -4,9 +4,12 @@ import Background from "../../../../../../Background";
 import { Button } from "../../../../../../Button";
 import TextWithSpeech from "../../../../TextWithSpeech";
 import { useSliderProvider } from "../../../../../../../contexts/SliderContext";
+import { useSidebarContext } from "../../../../../Sidebar";
+import { StoriesMenu } from "../../StoriesMenu";
 
-const Slide2: React.FC = () => {
-  const { nextSlide } = useSliderProvider();
+const Slide3: React.FC = () => {
+  const { prevSlide } = useSliderProvider();
+  const { setCustomComponent } = useSidebarContext();
 
   return (
     <motion.div
@@ -24,21 +27,25 @@ const Slide2: React.FC = () => {
           transition={{ duration: 1, delay: 0.5 }}
         >
           <motion.img
-            src="https://upload.wikimedia.org/wikipedia/commons/3/39/Tiger_shark.jpg"
+            src="https://upload.wikimedia.org/wikipedia/commons/5/56/White_shark.jpg"
             alt="Sharks in ocean"
-            className="w-full h-56 object-cover rounded-lg mb-6"
+            className="w-full h-72 object-cover rounded-lg mb-6"
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8, delay: 0.3 }}
           />
 
-          <TextWithSpeech textToRead="Beyond movies and folklore, sharks are vital actors in oceanic ecosystems. Some of these species, such as the Great White Shark and the Tiger Shark, are apex predators that play a crucial role as keystone species. A keystone species is define as an organism that has a disproportionately large effect on its environment relative to its abundance, essentially holding an ecosystem together. In other words, even with relatively low populations compared to other animals, keystone species play a critical role in regulating the populations of other species. Their disappearance can trigger a collapse in the food chain, causing significant imbalances in the ecosystem." />
+          <TextWithSpeech textToRead="Apex predators are animals that have no natural predators and occupy the highest position in the trophic chain. A well-known example is the great white shark (Carcharodon carcharias). By keeping populations of lower trophic levels under control (a process known as top-down regulation), apex predators prevent excessive population growth and thus contribute to maintaining ecological balance." />
         </motion.p>
       </div>
-      <div className="absolute bottom-8 right-8 flex justify-end z-20">
-        <Button onClick={nextSlide}>Next</Button>
+      {/* Navigation buttons */}
+      <div className="bottom-8 left-0 right-0 flex w-full justify-end px-8 z-20 mb-8">
+        <Button onClick={prevSlide}>Back</Button>
+        <Button onClick={() => setCustomComponent(<StoriesMenu />)}>
+          Return to Menu
+        </Button>
       </div>
     </motion.div>
   );
 };
-export default Slide2;
+export default Slide3;

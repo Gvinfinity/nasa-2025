@@ -1,14 +1,13 @@
 import { BookOpen } from "lucide-react";
 import React from "react";
 import { StoriesMenu } from "./Stories/StoriesMenu.tsx";
+import { useSidebarContext } from "../../Sidebar.tsx";
 
-type KnowledgeHubProps = {
-  setChildren: (component: React.ReactNode) => void;
-};
+export const KnowledgeHub: React.FC = () => {
+  const { setCustomComponent } = useSidebarContext();
 
-export const KnowledgeHub: React.FC<KnowledgeHubProps> = ({ setChildren }) => {
   const handleKnowledgeHubClick = () => {
-    setChildren(<StoriesMenu setChildren={setChildren} />);
+    setCustomComponent(<StoriesMenu />);
   };
 
   return (

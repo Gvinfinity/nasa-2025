@@ -39,28 +39,17 @@ const Slide3: React.FC = () => {
               <>
                 Sharks inhabit a wide variety of environments, ranging from
                 marine to freshwater ecosystems. Although they are often
-                perceived as{" "}
-                <Tooltip
-                  title="Apex Predator"
-                  contents={[
-                    {
-                      image: "https://upload.wikimedia.org/wikipedia/commons/5/56/White_shark.jpg",
-                      text: "Apex predators are animals that have no natural predators and occupy the highest position in the trophic chain. A well-known example is the great white shark (Carcharodon carcharias). By keeping populations of lower trophic levels under control (a process known as top-down regulation), apex predators prevent excessive population growth and thus contribute to maintaining ecological balance."
-                    }
-                  ]}
-                >
-                  apex predators
-                </Tooltip>
-                , their ecological diversity is much broader. Adult body sizes
-                range from about 20 cm to over 18 m, allowing them to occupy
-                distinct{" "}
+                perceived as apex predators, their ecological diversity is much
+                broader. Adult body sizes range from about 20 cm to over 18 m,
+                allowing them to occupy distinct{" "}
                 <Tooltip
                   title="Ecological Niches"
                   contents={[
                     {
-                      image: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/Ifugao_-_2.jpg/1920px-Ifugao_-_2.jpg",
-                      text: "An ecological niche is defined as the set of roles and functions a species performs within its environment. It involves the interaction of abiotic conditions, ecological relationships, and the species' role, encompassing its distribution, sources of resources, and contributions to biodiversity and ecological stability."
-                    }
+                      image:
+                        "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/Ifugao_-_2.jpg/1920px-Ifugao_-_2.jpg",
+                      text: "An ecological niche is defined as the set of roles and functions a species performs within its environment. It involves the interaction of abiotic conditions, ecological relationships, and the species' role, encompassing its distribution, sources of resources, and contributions to biodiversity and ecological stability.",
+                    },
                   ]}
                 >
                   ecological niches

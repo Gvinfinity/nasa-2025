@@ -1,50 +1,326 @@
-import React, { useState, createContext } from "react";
+import React, { useState, createContext, useCallback, useContext } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sharkmap } from "./components/Sharkmap";
 import { KnowledgeHub } from "./components/KnowledgeHub/KnowledgeHub";
 import { PredictSharkMovement } from "./components/PredictSharkMovement";
 import { Tutorial } from "./components/Tutorial";
+import { WhatAreSharks } from "./components/KnowledgeHub/Stories/WhatAreSharks/WhatAreSharks";
+import { SharksFoodChain } from "./components/KnowledgeHub/Stories/SharksFoodChain/SharksFoodChain";
+import { SharksImportance } from "./components/KnowledgeHub/Stories/SharksImportance/SharksImportance";
+import { SharksInDanger } from "./components/KnowledgeHub/Stories/SharksInDanger/SharksInDanger";
+import MapLatitude from "../maps/LatitudeMap";
+import { PredictSharkMovements } from "../../pages/PredictSharkMovement/PredictSharkMovementPage";
+import { ModelInfo } from "../../pages/PredictSharkMovement/components/ModelInfo";
+import { TagInfo } from "../../pages/PredictSharkMovement/components/TagInfo";
 import { MeetTheTeam } from "./components/MeetTheTeam";
 
 interface SidebarProps {
   children?: React.ReactNode;
 }
 
-type OpenTabKey = "knowledgehub" | "sharkmap" | "predict" | "meet" | null;
+export type SidebarItemKey =
+  | "sharkmap"
+  | "knowledgehub-menu"
+  | "tutorial"
+  | "meet-the-team"
+  | "prediction-menu"
+  | "model-info-story"
+  | "tag-info-story"
+  | "what-are-sharks-story"
+  | "sharks-importance-story"
+  | "sharks-food-chain-story"
+  | "sharks-in-danger-story"
+  | null;
 
-export const SidebarContext = createContext<{
-  openTab: (key: OpenTabKey) => void;
-}>({ openTab: () => {} });
+export interface KnowledgeOption {
+  name: string;
+  image: string;
+  description: string;
+  selected: boolean;
+}
+
+interface SidebarState {
+  currentItem: SidebarItemKey;
+  currentComponent: React.ReactNode;
+  history: SidebarItemKey[];
+  visitedItems: Set<SidebarItemKey>;
+  mapMode: "research" | "student";
+  enabled: boolean;
+}
+
+interface SidebarContextType {
+  // Current state
+  currentItem: SidebarItemKey;
+  currentComponent: React.ReactNode;
+  visitedItems: Set<SidebarItemKey>;
+  mapMode: "research" | "student";
+  enabled: boolean;
+
+  // Navigation methods
+  navigateTo: (item: SidebarItemKey) => void;
+  goBack: () => void;
+  canGoBack: boolean;
+
+  // Utility methods
+  isItemVisited: (item: SidebarItemKey) => boolean;
+  getUnvisitedItems: () => SidebarItemKey[];
+  resetNavigation: () => void;
+
+  // Component setters (for nested navigation like KnowledgeHub)
+  setCustomComponent: (component: React.ReactNode) => void;
+
+  // Map state setters
+  setMapMode: (mode: "research" | "student") => void;
+  setEnabled: (enabled: boolean) => void;
+
+  // Knowledge Hub state and methods
+  knowledgeHubOpenMenu: boolean;
+  knowledgeOptions: KnowledgeOption[];
+  handleKnowledgeHubStoriesClick: () => void;
+  handleKnowledgeHubItemClick: (index: number) => void;
+
+  // Legacy method for backward compatibility
+  openTab: (key: string) => void;
+}
+
+export const SidebarContext = createContext<SidebarContextType | undefined>(
+  undefined
+);
 
 export const Sidebar = ({ children }: SidebarProps) => {
-  const [mapMode, setMapMode] = useState<"research" | "student">("research");
-  const [enabled, setEnabled] = useState<boolean>(false);
+  const [state, setState] = useState<SidebarState>({
+    currentItem: null,
+    currentComponent: children || null,
+    history: [],
+    visitedItems: new Set(),
+    mapMode: "research",
+    enabled: false,
+  });
 
-  const injectedChildren = (children as any)
-    ? React.Children.map(children as any, (child: any) =>
-        React.isValidElement(child)
-          ? React.cloneElement(child, { mapMode, enabled, setEnabled } as any)
-          : child
-      )
-    : children;
+  // Knowledge Hub state
+  const [knowledgeHubOpenMenu, setKnowledgeHubOpenMenu] = useState(false);
+  const [knowledgeOptions] = useState<KnowledgeOption[]>([
+    {
+      name: "What are Sharks",
+      image: "/src/assets/shark1.png",
+      description: "Learn about shark biology and characteristics",
+      selected: false,
+    },
+    {
+      name: "Importance of Sharks",
+      image: "/src/assets/shark2.png",
+      description: "Discover why sharks are keystone species",
+      selected: false,
+    },
+    {
+      name: "Sharks in the Food Chain",
+      image: "/src/assets/shark3.png",
+      description: "Understand sharks' role in marine ecosystems",
+      selected: false,
+    },
+    {
+      name: "Sharks are in Danger",
+      image: "/src/assets/shark4.png",
+      description: "Learn about threats facing shark populations",
+      selected: false,
+    },
+  ]);
 
-  const [childrenSaved, setChildren] = useState<React.ReactNode | null>(null);
-  const [activeSidebarTab, setActiveSidebarTab] = useState<OpenTabKey>(null);
+  const setCustomComponent = useCallback((component: React.ReactNode) => {
+    setState((prevState) => ({
+      ...prevState,
+      currentComponent: component,
+    }));
+  }, []);
 
-  const openTab = (key: OpenTabKey) => {
-    console.debug("[Sidebar] openTab", key);
-    // knowledgehub is a special case that renders into the main content area
-    if (key === "knowledgehub") {
-      setChildren(<KnowledgeHub setChildren={setChildren} />);
-    } else {
-      // other tabs keep the main content unchanged; we only record the active sidebar tab
-      setChildren(null);
-    }
-    setActiveSidebarTab(key);
+  const getComponentForItem = useCallback(
+    (item: SidebarItemKey): React.ReactNode => {
+      switch (item) {
+        case "sharkmap":
+          return <MapLatitude />;
+        case "knowledgehub-menu":
+          return <KnowledgeHub setChildren={setCustomComponent} />;
+        case "prediction-menu":
+          return <PredictSharkMovements />;
+        case "model-info-story":
+          return <ModelInfo />;
+        case "tag-info-story":
+          return <TagInfo />;
+        case "tutorial":
+          return <Tutorial />;
+        case "meet-the-team":
+          return <MeetTheTeam />;
+        case "what-are-sharks-story":
+          return <WhatAreSharks />;
+        case "sharks-importance-story":
+          return <SharksImportance />;
+        case "sharks-food-chain-story":
+          return <SharksFoodChain />;
+        case "sharks-in-danger-story":
+          return <SharksInDanger />;
+        default:
+          return children || null;
+      }
+    },
+    [children, setCustomComponent]
+  );
+
+  const navigateTo = useCallback(
+    (item: SidebarItemKey) => {
+      setState((prevState) => {
+        const newHistory = prevState.currentItem
+          ? [...prevState.history, prevState.currentItem]
+          : prevState.history;
+
+        const newVisitedItems = new Set(prevState.visitedItems);
+        if (item) {
+          newVisitedItems.add(item);
+        }
+
+        return {
+          ...prevState,
+          currentItem: item,
+          currentComponent: getComponentForItem(item),
+          history: newHistory,
+          visitedItems: newVisitedItems,
+        };
+      });
+    },
+    [getComponentForItem]
+  );
+
+  const handleKnowledgeHubStoriesClick = useCallback(() => {
+    setKnowledgeHubOpenMenu(!knowledgeHubOpenMenu);
+  }, [knowledgeHubOpenMenu]);
+
+  const handleKnowledgeHubItemClick = useCallback(
+    (index: number) => {
+      const storyKeys: SidebarItemKey[] = [
+        "what-are-sharks-story",
+        "sharks-importance-story",
+        "sharks-food-chain-story",
+        "sharks-in-danger-story",
+      ];
+
+      if (index < storyKeys.length) {
+        navigateTo(storyKeys[index]);
+      }
+    },
+    [navigateTo]
+  );
+
+  const goBack = useCallback(() => {
+    setState((prevState) => {
+      if (prevState.history.length === 0) {
+        return prevState;
+      }
+
+      const previousItem = prevState.history[prevState.history.length - 1];
+      const newHistory = prevState.history.slice(0, -1);
+
+      return {
+        ...prevState,
+        currentItem: previousItem,
+        currentComponent: getComponentForItem(previousItem),
+        history: newHistory,
+      };
+    });
+  }, [getComponentForItem]);
+
+  const canGoBack = state.history.length > 0;
+
+  const isItemVisited = useCallback(
+    (item: SidebarItemKey): boolean => {
+      return state.visitedItems.has(item);
+    },
+    [state.visitedItems]
+  );
+
+  const getUnvisitedItems = useCallback((): SidebarItemKey[] => {
+    const allItems: SidebarItemKey[] = [
+      "sharkmap",
+      "knowledgehub-menu",
+      "prediction-menu",
+      "model-info-story",
+      "tag-info-story",
+      "tutorial",
+      "meet-the-team",
+      "what-are-sharks-story",
+      "sharks-importance-story",
+      "sharks-food-chain-story",
+      "sharks-in-danger-story",
+    ];
+    return allItems.filter((item) => !state.visitedItems.has(item));
+  }, [state.visitedItems]);
+
+  const setMapModeCallback = useCallback((mode: "research" | "student") => {
+    setState((prevState) => ({
+      ...prevState,
+      mapMode: mode,
+    }));
+  }, []);
+
+  const setEnabledCallback = useCallback((enabled: boolean) => {
+    setState((prevState) => ({
+      ...prevState,
+      enabled,
+    }));
+  }, []);
+
+  const resetNavigation = useCallback(() => {
+    setState({
+      currentItem: null,
+      currentComponent: children || null,
+      history: [],
+      visitedItems: new Set(),
+      mapMode: "research",
+      enabled: false,
+    });
+  }, [children]);
+
+  // Legacy openTab method for backward compatibility
+  const openTab = useCallback(
+    (key: string) => {
+      console.debug("[Sidebar] openTab", key);
+      // Map legacy keys to new keys
+      const keyMapping: Record<string, SidebarItemKey> = {
+        knowledgehub: "knowledgehub-menu",
+        sharkmap: "sharkmap",
+        predict: "prediction-menu",
+        meet: "meet-the-team",
+        tutorial: "tutorial",
+      };
+
+      const mappedKey = keyMapping[key] || null;
+      navigateTo(mappedKey);
+    },
+    [navigateTo]
+  );
+
+  const contextValue: SidebarContextType = {
+    currentItem: state.currentItem,
+    currentComponent: state.currentComponent,
+    visitedItems: state.visitedItems,
+    mapMode: state.mapMode,
+    enabled: state.enabled,
+    navigateTo,
+    goBack,
+    canGoBack,
+    isItemVisited,
+    getUnvisitedItems,
+    resetNavigation,
+    setCustomComponent,
+    setMapMode: setMapModeCallback,
+    setEnabled: setEnabledCallback,
+    knowledgeHubOpenMenu,
+    knowledgeOptions,
+    handleKnowledgeHubStoriesClick,
+    handleKnowledgeHubItemClick,
+    openTab,
   };
 
   return (
-    <SidebarContext.Provider value={{ openTab }}>
+    <SidebarContext.Provider value={contextValue}>
       <div className="flex">
         {/* Sidebar */}
         <aside className="w-72 h-screen bg-gradient-to-b from-blue-900 to-blue-950 text-white flex flex-col items-start p-4 shadow-2xl relative overflow-hidden overflow-y-auto">
@@ -58,13 +334,13 @@ export const Sidebar = ({ children }: SidebarProps) => {
             </h1>
           </div>
           <nav className="flex flex-col gap-3 w-full mt-6">
-            <Sharkmap
-              setMapMode={setMapMode}
-              enabled={enabled}
-              setEnabled={setEnabled}
-              forcedOpen={activeSidebarTab === "sharkmap"}
-            />
-            <KnowledgeHub setChildren={setChildren} />
+            <a onClick={() => navigateTo("sharkmap")}>
+              <Sharkmap
+                setMapMode={setMapModeCallback}
+                forcedOpen={state.currentItem === "sharkmap"}
+              />
+            </a>
+            <KnowledgeHub />
             <PredictSharkMovement />
             <Tutorial />
             <MeetTheTeam forcedOpen={activeSidebarTab === "meet"} />
@@ -82,18 +358,28 @@ export const Sidebar = ({ children }: SidebarProps) => {
         <div className="flex-1 bg-black min-h-screen">
           <AnimatePresence mode="wait">
             <motion.div
-              key={childrenSaved ? "panel-custom" : "panel-default"}
+              key={state.currentComponent ? "panel-custom" : "panel-default"}
               className="w-full h-full"
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.22, ease: "easeOut" }}
             >
-              {childrenSaved ?? injectedChildren}
+              {state.currentComponent ?? children}
             </motion.div>
           </AnimatePresence>
         </div>
       </div>
     </SidebarContext.Provider>
   );
+};
+
+export const useSidebarContext = () => {
+  const context = useContext(SidebarContext);
+  if (!context) {
+    throw new Error(
+      "useSidebarContext must be used within a Sidebar component"
+    );
+  }
+  return context;
 };
