@@ -262,12 +262,23 @@ export default function MapLatitude({
       pickable: true,
       radiusUnits: "pixels",
       getPosition: (d) => d.position,
-      getRadius: (_d: any) => 4,
+      // Larger, softer halos: radius scaled up and alpha reduced for diffusion
+      getRadius: (d: any) => {
+        const weight = (d && d.weight) || 0;
+        const base = 6 + Math.min(12, Math.max(0, weight / 2));
+        // shrink with zoom: higher zoom -> smaller visual radius
+        const z = (viewState && (viewState.zoom as number)) || 1;
+        const zoomScale = Math.max(0.4, 1 / (Math.pow(2, Math.max(0, z - 3))));
+        return Math.round(base * zoomScale);
+      },
+      radiusMinPixels: 2,
       getFillColor: (d) => {
         const t = Math.max(0, Math.min(1, (d.weight || 0) / 10));
         const [r, g, b] = colorForValue(activePalette, t);
-        return [r, g, b, 200];
+        // lower alpha for a more transparent, diffused halo
+        return [r, g, b, 80];
       },
+      opacity: 0.7,
       onClick: onDotClick,
       onHover: makeHoverHandler((obj: any, info: any) => {
         const lon =
@@ -425,7 +436,11 @@ export default function MapLatitude({
       const canvas = mapObj.getCanvas && mapObj.getCanvas();
       const width = (canvas && (canvas.clientWidth || canvas.width)) || 800;
       const height = (canvas && (canvas.clientHeight || canvas.height)) || 600;
-      const pixelStep = Math.max(8, Math.round(800 / scale));
+  // Compute pixel step from a desired number of samples across the width.
+  // This makes sampling denser at wide (low) zooms because `scale` is small.
+  // desiredSamples scales with `scale` but is clamped to reasonable bounds.
+  const desiredSamples = Math.max(10, Math.min(200, Math.round(scale * 6)));
+  const pixelStep = Math.max(4, Math.round(width / desiredSamples));
 
       const pts: Array<[number, number]> = [];
       for (let y = 0; y < height; y += pixelStep) {
@@ -507,32 +522,35 @@ export default function MapLatitude({
     } catch (e) {}
   }, []);
 
-  // Use maplibre event-driven sampling instead of relying on viewState effects.
-  // This runs when the user finishes interactions (moveend/zoomend) and is
-  // debounced to avoid excessive sampling during continuous interactions.
+  // Use maplibre event-driven sampling: only trigger on panning (moveend).
+  // We intentionally avoid triggering sampling on zoom so that zooming only
+  // affects visual size (radius) and does not re-sample coords which can
+  // produce new points and the "multiplying" UX the user reported.
   useEffect(() => {
     if (!mapObj) return;
 
-    let debounceId: any = null;
+    let moveDebounce: any = null;
 
-    const handler = () => {
-      if (debounceId) clearTimeout(debounceId);
-      debounceId = setTimeout(() => { void performSampleAndFetch(); }, 250);
+    const moveHandler = () => {
+      if (moveDebounce) clearTimeout(moveDebounce);
+      moveDebounce = setTimeout(() => {
+        // always run sample on moveend (panning)
+        void performSampleAndFetch();
+      }, 250);
     };
 
     try {
-      mapObj.on?.('moveend', handler);
-      mapObj.on?.('zoomend', handler);
+      mapObj.on?.('moveend', moveHandler);
     } catch (e) {
       // ignore if mapObj doesn't support event API
     }
 
     // run once to sample current view
-    handler();
+    moveHandler();
 
     return () => {
-      if (debounceId) clearTimeout(debounceId);
-      try { mapObj.off?.('moveend', handler); mapObj.off?.('zoomend', handler); } catch (e) {}
+      if (moveDebounce) clearTimeout(moveDebounce);
+      try { mapObj.off?.('moveend', moveHandler); } catch (e) {}
     };
   }, [mapObj, performSampleAndFetch]);
 
