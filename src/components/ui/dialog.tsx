@@ -56,13 +56,12 @@ export const Dialog: React.FC<DialogProps> = ({
     <div
       aria-modal
       role="dialog"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none"
     >
       <div
-        className="absolute inset-0 bg-black/50"
-        onClick={() => onClose()}
+        className="absolute inset-0 bg-black/50 pointer-events-none"
       />
-      <div className="relative z-10 w-full max-w-xl rounded-md bg-blue-800 shadow-lg">
+      <div className="relative z-10 w-full max-w-xl rounded-md bg-blue-800 shadow-lg pointer-events-auto">
         <div className="flex items-center justify-between border-b px-4 py-3">
           <div className="text-lg font-semibold">{title}</div>
           <X className="w-5 h-5 cursor-pointer" onClick={onClose} />

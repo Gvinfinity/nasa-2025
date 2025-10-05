@@ -71,7 +71,7 @@ export function Slides({ slides, onClose }: SlidesProps) {
           exit={{ opacity: 0 }}
         />
 
-        <div className={containerClass} style={{ zIndex: 2000 }}>
+  <div className={`${containerClass} pointer-events-none`} style={{ zIndex: 2000 }}>
           <motion.div
             key="panel"
             initial={{ opacity: 0, y: 8, scale: 0.995 }}
@@ -85,7 +85,7 @@ export function Slides({ slides, onClose }: SlidesProps) {
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1 min-w-0">
                 <h3 className="text-lg font-semibold">{cur.title}</h3>
-                <div className="mt-2 text-sm opacity-90 max-h-[55vh] overflow-auto">
+                <div className="mt-2 text-md opacity-90 max-h-[55vh] overflow-auto">
                   <div style={{ whiteSpace: 'pre-wrap' }}>{cur.text}</div>
                 </div>
               </div>
@@ -95,9 +95,9 @@ export function Slides({ slides, onClose }: SlidesProps) {
                   onClick={() => {
                     onClose?.();
                   }}
-                  className="text-sm text-white/80 hover:text-white"
+                  className="text-sm text-white/80 hover:text-white border border-white rounded-full"
                 >
-                  <X className='w-5 h-5' />
+                  <X className='w-5 h-5 ' />
                 </button>
               </div>
             </div>
@@ -121,7 +121,6 @@ export function Slides({ slides, onClose }: SlidesProps) {
               </div>
 
               <div>
-                {/* Actions are executed automatically when a slide becomes active. */}
               </div>
             </div>
           </motion.div>

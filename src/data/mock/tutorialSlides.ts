@@ -6,6 +6,7 @@ export const TUTORIAL_SLIDES: Slide[] = [
     title: "Welcome",
     text: "We designed this tool to predict where it is most (and least) likely for sharks to be given a list of variables, including time period, ocean depth, and phytoplankton presence.",
     position: "center",
+    sidebarTab: null
   },
 {
   title: "Introduction",
@@ -30,33 +31,28 @@ Take a look at our sources in the *NASA Space Apps Challenge website*.`,
     action: () => {
       // pulse near the sidebar area where the SharkMap controls live
       const halo = createPulseHalo({
-        id: 'sharkmap-accessibility-toggle',
-        x: "92%",
+        id: 'sharkmap-depth-range',
+        x: "94%",
         y: "80%",
         size: 140,
         color: "rgba(99,102,241,0.9)",
         duration: 1.4,
       });
-      return [halo];
+      const halo2 = createPulseHalo({
+        id: 'sharkmap-year-range',
+        x: "55%",
+        y: "94%",
+        size: 140,
+        color: "rgba(99,102,241,0.9)",
+        duration: 1.4,
+      });
+      return [halo, halo2];
     },
   },
   {
     title: "Prediction",
     text: "The output probability is presented on the map according to this scale.",
       position: "center-right",
-    action: () => {
-      // pulse near the sidebar area where the SharkMap controls live
-      const halo = createPulseHalo({
-        id: 'sharkmap-accessibility-toggle',
-        x: "92%",
-        y: "80%",
-        size: 140,
-        color: "rgba(99,102,241,0.9)",
-        duration: 1.4,
-      });
-      // return the halo so the Slides component can destroy it when the slide is skipped
-      return halo;
-    },
   },
   {
     title: "Flags",
