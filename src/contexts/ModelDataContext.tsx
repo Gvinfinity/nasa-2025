@@ -47,10 +47,12 @@ export const ModelDataProvider: React.FC<{ children: ReactNode }> = ({
   const fetchModelData = useCallback(
     async (opts?: { year?: number; month?: number; depth?: number; coords?: Array<[number, number]>; acceptMock?: boolean }) => {
       try {
-        const year = opts?.year ?? START_YEAR + Math.floor(monthIndex / 12);
-        const month = opts?.month ?? (monthIndex % 12) + 1;
+  const year = opts?.year ?? START_YEAR + Math.floor(monthIndex / 12);
+  const month = opts?.month ?? (monthIndex % 12) + 1;
         const requestedDepth = opts?.depth ?? depth;
         const coords = opts?.coords;
+  // construct ISO date (first day of month) accepted by Python datetime
+  const date = `${year.toString().padStart(4, '0')}-${month.toString().padStart(2, '0')}-01`;
 
         let tuples: DataPoint[] = [];
 
@@ -60,8 +62,8 @@ export const ModelDataProvider: React.FC<{ children: ReactNode }> = ({
           tuples = (yearMap[month] || []).filter((t: DataPoint) => (t[3] ?? 0) <= requestedDepth);
         } else {
           try {
-            // call the statically imported API helper (include coords if provided)
-            const res = await fetchModelDataFromAPI({ year, month, depth: requestedDepth, view: selectedView, coords });
+            // call the statically imported API helper (include coords and date)
+            const res = await fetchModelDataFromAPI({ date, depth: requestedDepth, view: selectedView, coords });
             // normalize response: accept either { data: [...] } or an array
             let raw: any[] = [];
             if (Array.isArray(res)) raw = res as any[];
