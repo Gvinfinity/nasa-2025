@@ -3,13 +3,16 @@ import { motion } from "framer-motion";
 import { useKnowledgeHub } from "../useKnowledgeHub";
 import Background from "../../../../Background";
 import { BookOpen, Globe2, Waves, AlertTriangle } from "lucide-react"; // icons
+import { useSidebarContext } from "../../../Sidebar";
 
-type StoriesMenuProp = {
-  setChildren: (component: React.ReactNode) => void;
-};
+// type StoriesMenuProp = {
+//   setChildren: (component: React.ReactNode) => void;
+// };
 
-export const StoriesMenu: React.FC<StoriesMenuProp> = ({ setChildren }) => {
-  const { handleItemClick, knowledgeOptions } = useKnowledgeHub(setChildren);
+export const StoriesMenu: React.FC = () => {
+  const { setCustomComponent } = useSidebarContext();
+
+  const { handleItemClick, knowledgeOptions } = useKnowledgeHub(setCustomComponent);
 
   // Icon mapping
   const icons = [BookOpen, Globe2, Waves, AlertTriangle];

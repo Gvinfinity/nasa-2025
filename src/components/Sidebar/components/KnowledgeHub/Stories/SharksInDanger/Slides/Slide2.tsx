@@ -10,7 +10,7 @@ const Slide2: React.FC = () => {
 
   return (
     <motion.div
-      className="relative w-full h-screen flex flex-col justify-between items-center overflow-hidden"
+      className="relative w-full h-screen flex flex-col justify-between items-center overflow-auto"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 1.5 }}
@@ -26,15 +26,13 @@ const Slide2: React.FC = () => {
           <motion.img
             src="https://upload.wikimedia.org/wikipedia/commons/a/a1/Male_whale_shark_at_Georgia_Aquarium.jpg"
             alt="Sharks in ocean"
-            className="w-full object-cover rounded-lg mb-6"
+            className="w-full  h-64 object-cover rounded-lg mb-6"
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8, delay: 0.3 }}
           />
 
-          <TextWithSpeech
-            textToRead="More than 65% of shark species are in danger of extinction due to overfishing, habitat loss, ocean pollution and climate change. Considering their importance in our ecossystems, we must protect "
-          />
+          <TextWithSpeech textToRead="According to the International Union for Conservation of Nature (IUCN) Red List, approximately 31% of the 536 shark species worldwide are threatened with extinction, along with 60% of coral reef–associated sharks and rays. Given the crucial role of sharks in aquatic ecosystems, their conservation and preservation are essential for maintaining ecosystem balance and proper functioning." />
         </motion.p>
       </div>
       {/* Navigation buttons */}

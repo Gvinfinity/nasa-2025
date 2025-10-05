@@ -4,13 +4,16 @@ import Background from "../../../../../../Background";
 import { Button } from "../../../../../../Button";
 import TextWithSpeech from "../../../../TextWithSpeech";
 import { useSliderProvider } from "../../../../../../../contexts/SliderContext";
+import { useSidebarContext } from "../../../../../Sidebar";
+import { StoriesMenu } from "../../StoriesMenu";
 
 const Slide2: React.FC = () => {
-  const { prevSlide, nextSlide } = useSliderProvider();
+  const { prevSlide } = useSliderProvider();
+  const { setCustomComponent } = useSidebarContext();
 
   return (
     <motion.div
-      className="relative w-full h-screen flex flex-col justify-between items-center overflow-hidden"
+      className="relative w-full h-screen flex flex-col justify-between items-center overflow-auto"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 1.5 }}
@@ -41,7 +44,9 @@ const Slide2: React.FC = () => {
       {/* Navigation buttons */}
       <div className="bottom-8 left-0 right-0 flex w-full justify-between px-8 z-20 mb-8">
         <Button onClick={prevSlide}>Back</Button>
-        <Button onClick={nextSlide}>Next</Button>
+        <Button onClick={() => setCustomComponent(<StoriesMenu />)}>
+          Return to Menu
+        </Button>
       </div>
     </motion.div>
   );
