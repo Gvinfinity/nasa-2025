@@ -64,7 +64,7 @@ export const Dialog: React.FC<DialogProps> = ({
       <div className="relative z-10 w-full max-w-xl rounded-md bg-blue-800 shadow-lg pointer-events-auto">
         <div className="flex items-center justify-between border-b px-4 py-3">
           <div className="text-lg font-semibold">{title}</div>
-          <X className="w-5 h-5 cursor-pointer" onClick={onClose} />
+          <X className="w-6 h-6 border border-white rounded-full cursor-pointer" onClick={onClose} />
         </div>
         <div className="p-4">
           {/* two-column layout: image left, options right; stack vertically on small screens */}

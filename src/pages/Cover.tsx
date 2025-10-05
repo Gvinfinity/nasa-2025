@@ -92,7 +92,7 @@ const Cover: React.FC = () => {
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 1.4, ease: "easeOut" }}
         >
-          Shark Explorer
+          Shark Seer
         </motion.h1>
 
         <motion.p
