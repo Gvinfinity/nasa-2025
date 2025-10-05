@@ -1,6 +1,6 @@
 import { apiClient } from "./client";
 
-export interface ModelRequest {\
+export interface ModelRequest {
   date: string;
   depth: number;
   view?: string;
