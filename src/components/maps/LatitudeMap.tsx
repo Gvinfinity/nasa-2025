@@ -442,10 +442,24 @@ export default function MapLatitude({
   // zooming only changes visual size, not which geographic sample points are
   // chosen. We coarsen the grid step (doubling) until the number of points
   // is below MAX_POINTS to avoid huge payloads.
-  const MAX_POINTS = 1000;
-  // initial grid step in degrees (~5.5 km at equator for 0.05°)
-  let lonStep = 0.05;
-  let latStep = 0.05;
+  
+  // initial grid step in degrees (base). We'll adapt the grid coarseness
+  // based on the current zoom level: coarser when zoomed out, finer when
+  // zoomed in. This reduces points on wide views and preserves detail when
+  // the user zooms in.
+  const baseStep = 0.05; // degrees
+  let reductionFactor = 3.25; // default modest reduction
+  if (typeof zoom === 'number') {
+    if (zoom < 2) reductionFactor = 3.0; // very zoomed out -> coarse
+    else if (zoom < 4) reductionFactor = 2.0; // wide -> coarse
+    else if (zoom < 6) reductionFactor = 2.5; // mid -> moderate
+    else if (zoom < 10) reductionFactor = 1.5; // close -> moderate
+    else reductionFactor = 0.75; // close -> full detail
+  }
+
+  let lonStep = baseStep * reductionFactor;
+  let latStep = baseStep * reductionFactor;
+  const MAX_POINTS = 500; // hard cap to keep payloads reasonable
 
   // helper to build pts for a given step, handling antimeridian
   const buildPtsForStep = (ls: number, lt: number) => {
