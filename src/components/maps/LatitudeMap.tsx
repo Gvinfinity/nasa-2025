@@ -420,13 +420,7 @@ export default function MapLatitude({
     if (!mapObj) return;
     try {
       const zoom = mapObj.getZoom?.() ?? (viewState?.zoom as number) ?? 0;
-      const thresholdZoom = 2.6; // same threshold used previously
-      console.debug('[LatitudeMap] performSampleAndFetch - zoom:', zoom, 'thresholdZoom:', thresholdZoom);
-      if (zoom < thresholdZoom) {
-        updateVisibleCoords([]);
-        return;
-      }
-
+      console.debug('[LatitudeMap] performSampleAndFetch - zoom:', zoom);
       const scale = Math.pow(2, zoom);
       const canvas = mapObj.getCanvas && mapObj.getCanvas();
       const width = (canvas && (canvas.clientWidth || canvas.width)) || 800;

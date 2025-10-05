@@ -65,7 +65,7 @@ export const ModelDataProvider: React.FC<{ children: ReactNode }> = ({
   const { selectedView } = usePalette();
 
   const fetchModelData = useCallback(
-    async (opts?: { year?: number; month?: number; depth?: number; coords?: number[][]; acceptMock?: boolean }) => {
+    async (opts?: { year?: number; month?: number; depth?: number; coords?: number[][]; deltas?: any }) => {
       try {
   const year = opts?.year ?? START_YEAR + Math.floor(monthIndex / 12);
   const month = opts?.month ?? (monthIndex % 12) + 1;
@@ -78,64 +78,56 @@ export const ModelDataProvider: React.FC<{ children: ReactNode }> = ({
 
         let tuples: DataPoint[] = [];
 
-        if (opts?.acceptMock) {
-          const modAny: any = await import("../data/mock/mockModelDataByYear");
-          const yearMap = (modAny.modelDataByYear || {})[year] || {};
-          tuples = (yearMap[month] || []).filter((t: DataPoint) => (t[3] ?? 0) <= requestedDepth);
-        } else {
-          try {
+        try {
           // call the statically imported API helper (include coords, date, and deltas)
-            const deltasToSend = (opts && (opts as any).deltas) ? (opts as any).deltas : deltaGroup;
-            console.debug('[ModelDataContext] calling API with date, depth, view, coords length, deltas:', date, requestedDepth, selectedView, (coords ?? []).length, deltasToSend);
-            const res = await fetchModelDataFromAPI({ date, depth: requestedDepth, view: selectedView, coords: coords ?? [], deltas: deltasToSend });
-            console.debug('[ModelDataContext] raw API response:', res);
-            // normalize response: accept either { data: [...] } or an array
-            let raw: any[] = [];
-            if (Array.isArray(res)) raw = res as any[];
-            else if (res && Array.isArray((res as any).data)) raw = (res as any).data;
-            console.debug('[ModelDataContext] normalized raw length:', raw.length, 'sample:', raw.slice(0,3));
+          const deltasToSend = (opts && (opts as any).deltas) ? (opts as any).deltas : deltaGroup;
+          console.debug('[ModelDataContext] calling API with date, depth, view, coords length, deltas:', date, requestedDepth, selectedView, (coords ?? []).length, deltasToSend);
+          const res = await fetchModelDataFromAPI({ date, depth: requestedDepth, view: selectedView, coords: coords ?? [], deltas: deltasToSend });
+          console.debug('[ModelDataContext] raw API response:', res);
+          // normalize response: accept either { data: [...] } or an array
+          let raw: any[] = [];
+          if (Array.isArray(res)) raw = res as any[];
+          else if (res && Array.isArray((res as any).data)) raw = (res as any).data;
+          console.debug('[ModelDataContext] normalized raw length:', raw.length, 'sample:', raw.slice(0,3));
 
-            // Ensure each item is a DataPoint (4 elements). Accept either
-            // array-shaped items [lon, lat, count, depth?] or object-shaped
-            // items { longitude, latitude, count, depth? }.
-            tuples = raw
-              .map((r) => {
-                // array-shaped
-                if (Array.isArray(r)) {
-                  if (r.length >= 4) return [Number(r[0]), Number(r[1]), Number(r[2]), Number(r[3])] as DataPoint;
-                  if (r.length === 3) return [Number(r[0]), Number(r[1]), Number(r[2]), 0] as DataPoint;
-                  return null;
-                }
-                // object-shaped
-                if (r && typeof r === 'object') {
-                  const maybe = r as any;
-                  if (typeof maybe.longitude === 'number' || typeof maybe.longitude === 'string') {
-                    const lon = Number(maybe.longitude);
-                    const lat = Number(maybe.latitude);
-                    const cnt = Number(maybe.count ?? maybe.value ?? 0);
-                    const d = typeof maybe.depth === 'number' ? maybe.depth : (typeof maybe.depth === 'string' ? Number(maybe.depth) : 0);
-                    return [lon, lat, cnt, d] as DataPoint;
-                  }
-                }
+          // Ensure each item is a DataPoint (4 elements). Accept either
+          // array-shaped items [lon, lat, count, depth?] or object-shaped
+          // items { longitude, latitude, count, depth? }.
+          tuples = raw
+            .map((r) => {
+              // array-shaped
+              if (Array.isArray(r)) {
+                if (r.length >= 4) return [Number(r[0]), Number(r[1]), Number(r[2]), Number(r[3])] as DataPoint;
+                if (r.length === 3) return [Number(r[0]), Number(r[1]), Number(r[2]), 0] as DataPoint;
                 return null;
-              })
-              .filter(Boolean) as DataPoint[];
+              }
+              // object-shaped
+              if (r && typeof r === 'object') {
+                const maybe = r as any;
+                if (typeof maybe.longitude === 'number' || typeof maybe.longitude === 'string') {
+                  const lon = Number(maybe.longitude);
+                  const lat = Number(maybe.latitude);
+                  const cnt = Number(maybe.count ?? maybe.value ?? 0);
+                  const d = typeof maybe.depth === 'number' ? maybe.depth : (typeof maybe.depth === 'string' ? Number(maybe.depth) : 0);
+                  return [lon, lat, cnt, d] as DataPoint;
+                }
+              }
+              return null;
+            })
+            .filter(Boolean) as DataPoint[];
 
-            console.debug('[ModelDataContext] mapped tuples length after supporting object-shape:', tuples.length);
+          console.debug('[ModelDataContext] mapped tuples length after supporting object-shape:', tuples.length);
 
-            console.debug('[ModelDataContext] tuples after mapping length:', tuples.length, 'sample:', tuples.slice(0,3));
+          console.debug('[ModelDataContext] tuples after mapping length:', tuples.length, 'sample:', tuples.slice(0,3));
 
-            // apply depth filter only when depth value exists (t[3] numeric)
-            tuples = tuples.filter((t) => {
-              const d = typeof t[3] === "number" ? t[3] : 0;
-              return d <= requestedDepth;
-            });
-          } catch (e) {
-            // fallback to mock data on any failure
-            const modAny: any = await import("../data/mock/mockModelDataByYear");
-            const yearMap = (modAny.modelDataByYear || {})[year] || {};
-            tuples = (yearMap[month] || []).filter((t: DataPoint) => (t[3] ?? 0) <= requestedDepth);
-          }
+          // apply depth filter only when depth value exists (t[3] numeric)
+          tuples = tuples.filter((t) => {
+            const d = typeof t[3] === "number" ? t[3] : 0;
+            return d <= requestedDepth;
+          });
+        } catch (e) {
+          console.error('[ModelDataContext] API call failed while fetching real data:', e);
+          tuples = [];
         }
 
         setModelData(tuples);
@@ -154,7 +146,7 @@ export const ModelDataProvider: React.FC<{ children: ReactNode }> = ({
     // derive year/month
     const year = START_YEAR + Math.floor(monthIndex / 12);
     const month = (monthIndex % 12) + 1;
-    fetchModelData({ year, month, depth, acceptMock: true });
+    void fetchModelData({ year, month, depth });
   }, [monthIndex, depth, selectedView, fetchModelData]);
 
   const updateVisibleCoords = useCallback((coords: Array<[number, number]>) => {
