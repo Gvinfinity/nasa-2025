@@ -1,11 +1,10 @@
 import { apiClient } from "./client";
 
-export interface ModelRequest {
-  // ISO date string accepted by Python datetime (YYYY-MM-DD)
+export interface ModelRequest {\
   date: string;
   depth: number;
   view?: string;
-  coords?: Array<[number, number]>;
+  coordinates?: Array<[number, number]>;
 }
 
 export interface ModelResponse {
