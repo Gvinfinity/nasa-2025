@@ -4,7 +4,7 @@ import { Sharkmap } from "./components/Sharkmap";
 import { KnowledgeHub } from "./components/KnowledgeHub/KnowledgeHub";
 import { PredictSharkMovement } from "./components/PredictSharkMovement";
 import { Tutorial } from "./components/Tutorial";
-import { MeetTheDevelopers } from "./components/MeetTheDevelopers";
+import { MeetTheTeam } from "./components/MeetTheDevelopers";
 
 interface SidebarProps {
   children?: React.ReactNode;
@@ -58,7 +58,7 @@ export const Sidebar = ({ children }: SidebarProps) => {
          <Tutorial />
          </div>
           <div onClick={() => setChildren(null)}>
-         <MeetTheDevelopers />
+         <MeetTheTeam />
       </div>
         </nav>
 
