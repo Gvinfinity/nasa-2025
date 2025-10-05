@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react';
 import { usePalette } from './PaletteContext';
+import { fetchModelData } from '../api/model';
 
 type DataPoint = [number, number, number, number]; // [lon, lat, weight, depth]
 
@@ -9,7 +10,7 @@ type ResearchContextType = {
   setMonthIndex: (v: number) => void;
   depth: number;
   setDepth: (v: number) => void;
-  fetchResearchData: (opts?: { year: number; month: number; depth: number }) => Promise<DataPoint[]>;
+  fetchModelData: (opts?: { year: number; month: number; depth: number }) => Promise<DataPoint[]>;
 };
 
 const ResearchDataContext = createContext<ResearchContextType | undefined>(undefined);
@@ -25,7 +26,7 @@ export const ResearchDataProvider: React.FC<{ children: ReactNode }> = ({ childr
 
   const { selectedView } = usePalette();
 
-  const fetchResearchData = useCallback(async (opts?: { year?: number; month?: number; depth?: number }) => {
+  const fetchModelData = useCallback(async (opts?: { year?: number; month?: number; depth?: number }) => {
     // Simple mock fetch: load local mockResearchByYear and return tuples for the requested year
     try {
   const modAny: any = await import('../data/mock/mockResearchByYear');
@@ -40,7 +41,7 @@ export const ResearchDataProvider: React.FC<{ children: ReactNode }> = ({ childr
       setResearchData(tuples);
       return tuples;
     } catch (err) {
-      console.error('fetchResearchData failed', err);
+      console.error('fetchModelData failed', err);
       setResearchData([]);
       return [];
     }
@@ -51,11 +52,11 @@ export const ResearchDataProvider: React.FC<{ children: ReactNode }> = ({ childr
     // derive year/month
     const year = START_YEAR + Math.floor(monthIndex / 12);
     const month = (monthIndex % 12) + 1;
-    fetchResearchData({ year, month, depth });
-  }, [monthIndex, depth, selectedView, fetchResearchData]);
+    fetchModelData({ year, month, depth });
+  }, [monthIndex, depth, selectedView, fetchModelData]);
 
   return (
-    <ResearchDataContext.Provider value={{ researchData, monthIndex, setMonthIndex, depth, setDepth, fetchResearchData }}>
+    <ResearchDataContext.Provider value={{ researchData, monthIndex, setMonthIndex, depth, setDepth, fetchModelData }}>
       {children}
     </ResearchDataContext.Provider>
   );
