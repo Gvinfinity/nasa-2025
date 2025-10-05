@@ -83,7 +83,9 @@ interface SidebarContextType {
   openTab: (key: string) => void;
 }
 
-export const SidebarContext = createContext<SidebarContextType | undefined>(undefined);
+export const SidebarContext = createContext<SidebarContextType | undefined>(
+  undefined
+);
 
 export const Sidebar = ({ children }: SidebarProps) => {
   const [state, setState] = useState<SidebarState>({
@@ -277,20 +279,23 @@ export const Sidebar = ({ children }: SidebarProps) => {
   }, [children]);
 
   // Legacy openTab method for backward compatibility
-  const openTab = useCallback((key: string) => {
-    console.debug("[Sidebar] openTab", key);
-    // Map legacy keys to new keys
-    const keyMapping: Record<string, SidebarItemKey> = {
-      "knowledgehub": "knowledgehub-menu",
-      "sharkmap": "sharkmap",
-      "predict": "prediction-menu",
-      "meet": "meet-the-team",
-      "tutorial": "tutorial"
-    };
-    
-    const mappedKey = keyMapping[key] || null;
-    navigateTo(mappedKey);
-  }, [navigateTo]);
+  const openTab = useCallback(
+    (key: string) => {
+      console.debug("[Sidebar] openTab", key);
+      // Map legacy keys to new keys
+      const keyMapping: Record<string, SidebarItemKey> = {
+        knowledgehub: "knowledgehub-menu",
+        sharkmap: "sharkmap",
+        predict: "prediction-menu",
+        meet: "meet-the-team",
+        tutorial: "tutorial",
+      };
+
+      const mappedKey = keyMapping[key] || null;
+      navigateTo(mappedKey);
+    },
+    [navigateTo]
+  );
 
   const contextValue: SidebarContextType = {
     currentItem: state.currentItem,
@@ -330,11 +335,13 @@ export const Sidebar = ({ children }: SidebarProps) => {
             </h1>
           </div>
           <nav className="flex flex-col gap-3 w-full mt-6">
-            <Sharkmap
-              setMapMode={setMapModeCallback}
-              forcedOpen={state.currentItem === "sharkmap"}
-            />
-            <KnowledgeHub setChildren={setCustomComponent} />
+            <a onClick={() => navigateTo("sharkmap")}>
+              <Sharkmap
+                setMapMode={setMapModeCallback}
+                forcedOpen={state.currentItem === "sharkmap"}
+              />
+            </a>
+            <KnowledgeHub />
             <PredictSharkMovement />
             <Tutorial />
             <MeetTheTeam />
@@ -371,7 +378,9 @@ export const Sidebar = ({ children }: SidebarProps) => {
 export const useSidebarContext = () => {
   const context = useContext(SidebarContext);
   if (!context) {
-    throw new Error("useSidebarContext must be used within a Sidebar component");
+    throw new Error(
+      "useSidebarContext must be used within a Sidebar component"
+    );
   }
   return context;
 };

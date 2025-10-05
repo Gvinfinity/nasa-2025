@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Map, ChevronDown } from "lucide-react";
 import { usePalette } from "../../../contexts/PaletteContext";
 import { ModeToggleButton } from "./ModeToggleButton";
+import { useSidebarContext } from "../Sidebar";
 
 type SharkmapProps = {
   setMapMode?: (m: "research" | "student") => void;
@@ -54,7 +55,7 @@ export const Sharkmap = ({ setMapMode, forcedOpen }: SharkmapProps) => {
       deltaPhytoplankton: (sharkMapOptions[3]?.value ?? 50) - 50,
     };
     // normalize to a reasonable numeric range; the sliders are 0..100 with 50 as center
-    console.debug('[Sharkmap] setting deltaGroup:', dg);
+    console.debug("[Sharkmap] setting deltaGroup:", dg);
     setDeltaGroup?.(dg as any);
   }, [sharkMapOptions, setDeltaGroup]);
 
@@ -71,7 +72,9 @@ export const Sharkmap = ({ setMapMode, forcedOpen }: SharkmapProps) => {
         className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-800/60 transition-colors cursor-pointer"
       >
         <Map size={22} className="text-neutral-100" />
-        <span className="font-semibold text-neutral-100 tracking-wide">Shark Map</span>
+        <span className="font-semibold text-neutral-100 tracking-wide">
+          Shark Map
+        </span>
         <motion.div
           animate={{ rotate: openMenu ? 180 : 0 }}
           transition={{ duration: 0.3 }}
@@ -81,7 +84,7 @@ export const Sharkmap = ({ setMapMode, forcedOpen }: SharkmapProps) => {
         </motion.div>
       </div>
 
-  {/* forcedOpen handled via effect */}
+      {/* forcedOpen handled via effect */}
 
       <AnimatePresence>
         {openMenu && (
@@ -169,14 +172,16 @@ export const Sharkmap = ({ setMapMode, forcedOpen }: SharkmapProps) => {
                     min={0}
                     max={100}
                     value={opt.value}
-                    onChange={(e) => handleValueChange(i, Number(e.target.value))}
+                    onChange={(e) =>
+                      handleValueChange(i, Number(e.target.value))
+                    }
                     className="w-full h-2 bg-slate-600 rounded-lg appearance-none cursor-pointer slider-thumb"
                     style={{
                       background: `linear-gradient(to right, 
                         rgb(${opt.color[0]}, ${opt.color[1]}, ${opt.color[2]}) 0%, 
                         rgb(${opt.color[0]}, ${opt.color[1]}, ${opt.color[2]}) ${opt.value}%, 
                         #475569 ${opt.value}%, 
-                        #475569 100%)`
+                        #475569 100%)`,
                     }}
                   />
                 </div>
