@@ -1,7 +1,6 @@
-// Mock research data per year (simple static points). Each entry is [lon, lat, weight]
-// Mock research data per year and month. Each entry is [lon, lat, weight]
-// Structure: researchByYear[year][month] => array of tuples
-export const researchByYear: Record<number, Record<number, Array<[number, number, number]>>> = {
+// Mock model data per year and month. Each entry is [lon, lat, weight]
+// Structure: modelDataByYear[year][month] => array of tuples
+export const modelDataByYear: Record<number, Record<number, Array<[number, number, number]>>> = {
   2020: Object.fromEntries(
     Array.from({ length: 12 }).map((_, mi) => {
       const month = mi + 1;

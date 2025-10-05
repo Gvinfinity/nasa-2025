@@ -19,7 +19,7 @@ import { mockQuizPoints, QuizPoint } from "../../data/mock/mockQuestionsData";
 import { mockAerosol, ROWS as A_ROWS, COLS as A_COLS, BBOX as A_BBOX } from "../../data/mock/mockAerosol";
 import flagStudentIcon from "../../assets/flag_student.png";
 import Dialog from "../ui/dialog";
-import { useResearchData } from "../../contexts/ResearchDataContext";
+import { useModelData } from "../../contexts/ModelDataContext";
 
 const DATA_URL =
   "https://raw.githubusercontent.com/visgl/deck.gl-data/master/examples/screen-grid/uber-pickup-locations.json";
@@ -39,7 +39,7 @@ const MAP_STYLE =
 type DataPoint = [longitude: number, latitude: number, count: number, depth?: number];
 
 interface LatitudeMapProps {
-  researchData?: Array<DataPoint> | string;
+  modelData?: Array<DataPoint> | string;
   intensity?: number;
   threshold?: number;
   radiusPixels?: number;
@@ -51,7 +51,7 @@ interface LatitudeMapProps {
 }
 
 export default function MapLatitude({
-  researchData: _data = DATA_URL,
+  modelData: _data = DATA_URL,
   intensity = 1,
   threshold = 0.03,
   radiusPixels = 30,
@@ -68,8 +68,8 @@ export default function MapLatitude({
   // mapMode is now passed in as a prop from the Sidebar (or parent)
   const effectiveMapMode = mapModeProp ?? "research";
 
-  // Use ResearchData context for monthIndex/depth and researchData
-  const { researchData, monthIndex, setMonthIndex, depth, setDepth } = useResearchData();
+  // Use ModelData context for monthIndex/depth and modelData
+  const { modelData, monthIndex, setMonthIndex, depth, setDepth } = useModelData();
   const START_YEAR = 2020;
   const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   const TOTAL_MONTHS = 60;
@@ -92,9 +92,9 @@ export default function MapLatitude({
   const activePalette = (colorblindMode && PALETTES[cbKey]) ? PALETTES[cbKey] : (PALETTES[activePaletteKey] || PALETTES.default);
 
   const points = useMemo(() => {
-    if (!researchData || typeof researchData === "string") return [] as Array<{ position: number[]; weight: number }>;
-    return (researchData as DataPoint[]).map((d) => ({ position: [d[0], d[1]], weight: d[2] }));
-  }, [researchData]);
+    if (!modelData || typeof modelData === "string") return [] as Array<{ position: number[]; weight: number }>;
+    return (modelData as DataPoint[]).map((d) => ({ position: [d[0], d[1]], weight: d[2] }));
+  }, [modelData]);
 
   // local, debounced slider state to avoid rapid provider fetches
   const [displayMonth, setDisplayMonth] = useState<number>(monthIndex);
@@ -229,7 +229,7 @@ export default function MapLatitude({
         ? palette.map((c: number[]) => [c[0], c[1], c[2], 255])
         : [];
       return new HeatmapLayer<DataPoint>({
-        data: (researchData as DataPoint[]) || [],
+        data: (modelData as DataPoint[]) || [],
         id: "heatmap-layer",
         pickable: true,
         getPosition: (d) => [d[0], d[1]],
