@@ -50,7 +50,7 @@ export const Sidebar = ({ children }: SidebarProps) => {
         <aside className="w-72 h-screen bg-gradient-to-b from-blue-900 to-blue-950 text-white flex flex-col items-start p-4 shadow-2xl relative overflow-hidden overflow-y-auto">
           <div className="flex items-center justify-center gap-3 h-fit">
             <img
-              src="/sharko.png" alt="Sharko, the Shark Seer"
+              src="/sharko_new.png" alt="Sharko, the Shark Seer"
               className="w-20 h-20"
             />
             <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-100 via-cyan-300 to-blue-200 bg-clip-text text-transparent drop-shadow-[0_0_25px_rgba(59,130,246,0.3)]">

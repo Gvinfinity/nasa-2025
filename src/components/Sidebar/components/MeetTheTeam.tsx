@@ -1,6 +1,6 @@
 import { useState, useEffect, useContext } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Users } from "lucide-react";
 import Logo from "../../../assets/logo.svg";
 import { SidebarContext } from "../Sidebar";
 
@@ -26,7 +26,7 @@ export const MeetTheTeam = ({ forcedOpen }: MeetProps) => {
         }}
         className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-800/60 transition-colors cursor-pointer"
       >
-        <img src={Logo} alt="Project logo" className="w-10 h-10" />
+        <Users className="text-neutral-100" size={18} />
         <span className="font-semibold text-neutral-100 tracking-wide">
           Meet the Team
         </span>
@@ -67,10 +67,11 @@ export const MeetTheTeam = ({ forcedOpen }: MeetProps) => {
               <div className="flex items-center justify-between px-2 py-1 rounded bg-white/5">
                 <div>Thales Scarpato</div>
               </div>
-              <img src="/sharko.png" alt="Sharko, the Shark Seer" />
               <p className="mx-auto w-fit text-xs font-semibold text center">
-                Logo Designer: nile D. art
+                Shark Seer Logo Designer: nile D. art
               </p>
+              <img src={Logo} alt="Coding in Lua Logo" className="mx-auto h-20 w-20" />
+              
             </div>
           </motion.div>
         )}
