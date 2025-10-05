@@ -65,8 +65,7 @@ export function Slides({ slides, onClose }: SlidesProps) {
         {/* backdrop: visually dims but is click-through so the user can interact with the map */}
         <motion.div
           key="backdrop"
-          className="fixed inset-0 bg-black/50"
-          style={{ pointerEvents: 'none' }}
+          className="fixed inset-0 bg-black/50 pointer-events-none"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -81,12 +80,12 @@ export function Slides({ slides, onClose }: SlidesProps) {
             transition={{ duration: 0.28, ease: 'easeOut' }}
             className={`max-w-md w-full bg-white/5 backdrop-blur-md border border-white/10 rounded-lg p-4 text-white shadow-xl`}
             // ensure the panel still receives pointer events
-            style={{ maxHeight: '70vh', overflow: 'hidden', pointerEvents: 'auto' }}
+            style={{ maxHeight: '70vh', overflow: 'hidden', pointerEvents: 'auto' } as React.CSSProperties}
           >
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1 min-w-0">
                 <h3 className="text-lg font-semibold">{cur.title}</h3>
-                <div className="mt-2 text-sm opacity-90 max-h-[45vh] overflow-auto">
+                <div className="mt-2 text-sm opacity-90 max-h-[55vh] overflow-auto">
                   <div style={{ whiteSpace: 'pre-wrap' }}>{cur.text}</div>
                 </div>
               </div>
