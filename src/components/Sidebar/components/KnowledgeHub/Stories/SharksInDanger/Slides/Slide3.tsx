@@ -5,7 +5,7 @@ import { Button } from "../../../../../../Button";
 import TextWithSpeech from "../../../../TextWithSpeech";
 import { useSliderProvider } from "../../../../../../../contexts/SliderContext";
 
-const Slide2: React.FC = () => {
+const Slide3: React.FC = () => {
   const { prevSlide, nextSlide } = useSliderProvider();
 
   return (
@@ -24,24 +24,20 @@ const Slide2: React.FC = () => {
           transition={{ duration: 1, delay: 0.5 }}
         >
           <motion.img
-            src="https://upload.wikimedia.org/wikipedia/commons/a/a1/Male_whale_shark_at_Georgia_Aquarium.jpg"
+            src="src/assets/shark-importance.webp"
             alt="Sharks in ocean"
             className="w-full object-cover rounded-lg mb-6"
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8, delay: 0.3 }}
           />
-
-          <TextWithSpeech
-            textToRead="More than xx% of shark species are in danger of extinction due to overfishing, habitat loss, ocean pollution and climate change. Considering their importance in our ecossystems, we must protect "
-          />
         </motion.p>
       </div>
       {/* Navigation buttons */}
-      <div className="bottom-8 left-0 right-0 flex w-full justify-end px-8 z-20 mb-8">
-        <Button onClick={nextSlide}>Next</Button>
+      <div className="bottom-8 left-0 right-0 flex w-full justify-between px-8 z-20 mb-8">
+        <Button onClick={prevSlide}>Back</Button>
       </div>
     </motion.div>
   );
 };
-export default Slide2;
+export default Slide3;
