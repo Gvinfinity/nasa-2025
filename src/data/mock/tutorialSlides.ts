@@ -46,8 +46,8 @@ Take a look at our sources in the *NASA Space Apps Challenge website*.`,
     },
   },
   {
-    title: "Flags",
-    text: "You can click on the heat spots of the map to receive detailed information about them.",
+    title: "Heat Spots",
+    text: "You can hover on the heat spots of the map to receive detailed information about them and click on them to get zoomed in towards it.",
     position: "center-right",
   },
   {
