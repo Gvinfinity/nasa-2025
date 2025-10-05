@@ -58,15 +58,13 @@ export default function MapLatitude({
   mapStyle = MAP_STYLE,
   quizData = mockQuizPoints,
   mapMode: mapModeProp,
-  enabled: enabledProp,
-  setEnabled: setEnabledProp,
+  enabled: enabledProp
 }: LatitudeMapProps) {
   const [viewState, setViewState] = useState<
     MapViewState & { transitionDuration?: number; transitionInterpolator?: any }
   >(INITIAL_VIEW_STATE);
-  const [localEnabled, setLocalEnabled] = useState(false);
+  const [localEnabled] = useState(false);
   const enabled = typeof enabledProp === "boolean" ? enabledProp : localEnabled;
-  const setEnabled = setEnabledProp ?? setLocalEnabled;
   // mapMode is now passed in as a prop from the Sidebar (or parent)
   const effectiveMapMode = mapModeProp ?? "research";
 
