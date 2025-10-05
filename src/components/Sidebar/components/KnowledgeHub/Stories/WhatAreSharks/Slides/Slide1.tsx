@@ -24,17 +24,25 @@ const Slide1: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, ease: "easeOut" }}
         >
-          Why Sharks Are Important?
+          What are Sharks?
         </motion.h1>
 
+        <motion.img
+          src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f1/Whale_shark_Georgia_aquarium.jpg/1920px-Whale_shark_Georgia_aquarium.jpg"
+          alt="Shark"
+          className="mt-12 mb-8 h-64 md:h-80 object-cover rounded-lg shadow-lg mt-6"
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 1.2, delay: 0.3 }}
+        />
+
         <motion.p
-          className="text-blue-100 text-lg md:text-xl mt-6 max-w-2xl"
+          className="text-blue-100 text-lg md:text-xl mt-4 mb-8 max-w-2xl"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, delay: 0.5 }}
         >
-          In the deep blue, sharks keep the ocean in balance — vital to
-          ecosystems, silent guardians of marine life.
+         {/* TODO - DESCRIPTION */}
         </motion.p>
         <br />
 
