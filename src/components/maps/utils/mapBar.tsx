@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { PALETTES } from "../utils/palettes";
 import { usePalette } from "../../../contexts/PaletteContext";
 
