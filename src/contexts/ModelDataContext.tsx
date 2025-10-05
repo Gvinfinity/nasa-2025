@@ -56,6 +56,12 @@ export const ModelDataProvider: React.FC<{ children: ReactNode }> = ({
     deltaPhytoplankton: 0,
   });
 
+  // Wrap setter to log updates (helps trace propagation from Sharkmap sliders)
+  const _setDeltaGroup = useCallback((d: DeltaGroup) => {
+    console.debug('[ModelDataContext] setDeltaGroup called with:', d);
+    setDeltaGroup(d);
+  }, []);
+
   const { selectedView } = usePalette();
 
   const fetchModelData = useCallback(
@@ -172,7 +178,7 @@ export const ModelDataProvider: React.FC<{ children: ReactNode }> = ({
         depth,
         setDepth,
         deltaGroup,
-        setDeltaGroup,
+        setDeltaGroup: _setDeltaGroup,
         fetchModelData,
       }}
     >

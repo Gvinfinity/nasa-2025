@@ -407,11 +407,110 @@ export default function MapLatitude({
   // lightweight ref to remember last sampled point count to avoid
   // emitting identical coords repeatedly
   const lastPtsCountRef = useRef<number | null>(null);
+  // remember last map center so panning triggers a refetch even when pts length unchanged
+  const lastCenterRef = useRef<{ lng: number; lat: number } | null>(null);
+  // remember last deltaGroup serial so slider changes can force a fetch
+  const lastDeltaGroupRef = useRef<string | null>(null);
+  // guard to avoid overlapping fetches
+  const inFlightRef = useRef(false);
+
+  // shared sampling + fetch logic extracted so it can be invoked from
+  // both map events and slider (deltaGroup) changes.
+  const performSampleAndFetch = useCallback(async () => {
+    if (!mapObj) return;
+    try {
+      const zoom = mapObj.getZoom?.() ?? (viewState?.zoom as number) ?? 0;
+      const thresholdZoom = 2.6; // same threshold used previously
+      console.debug('[LatitudeMap] performSampleAndFetch - zoom:', zoom, 'thresholdZoom:', thresholdZoom);
+      if (zoom < thresholdZoom) {
+        updateVisibleCoords([]);
+        return;
+      }
+
+      const scale = Math.pow(2, zoom);
+      const canvas = mapObj.getCanvas && mapObj.getCanvas();
+      const width = (canvas && (canvas.clientWidth || canvas.width)) || 800;
+      const height = (canvas && (canvas.clientHeight || canvas.height)) || 600;
+      const pixelStep = Math.max(8, Math.round(800 / scale));
+
+      const pts: Array<[number, number]> = [];
+      for (let y = 0; y < height; y += pixelStep) {
+        for (let x = 0; x < width; x += pixelStep) {
+          try {
+            const ll = mapObj.unproject([x, y]);
+            if (ll && typeof ll.lng === 'number' && typeof ll.lat === 'number') pts.push([ll.lng, ll.lat]);
+          } catch {}
+        }
+      }
+
+      // Determine whether we should fetch: either pts count changed OR
+      // the slider-driven deltaGroup changed since the last fetch OR
+      // the map center moved (user panned). This ensures panning updates
+      // the spots' positions even when the sampled grid size is identical.
+      const dgKey = JSON.stringify(deltaGroup ?? {});
+      const ptsUnchanged = lastPtsCountRef.current !== null && lastPtsCountRef.current === pts.length;
+      const dgUnchanged = lastDeltaGroupRef.current === dgKey;
+  const center = mapObj && typeof mapObj.getCenter === 'function' ? mapObj.getCenter() : null;
+      const centerChanged = (() => {
+        if (!center) return false;
+        const last = lastCenterRef.current;
+        if (!last) return true;
+        const lonDiff = Math.abs((last.lng ?? 0) - (center.lng ?? 0));
+        const latDiff = Math.abs((last.lat ?? 0) - (center.lat ?? 0));
+        // threshold in degrees; tuned to be sensitive to user panning
+        return lonDiff > 0.01 || latDiff > 0.01;
+      })();
+
+      if (!ptsUnchanged || !dgUnchanged || centerChanged) {
+        // record new visible coords and delta key and center
+        updateVisibleCoords(pts);
+        lastPtsCountRef.current = pts.length;
+        lastDeltaGroupRef.current = dgKey;
+        if (center) lastCenterRef.current = { lng: center.lng, lat: center.lat };
+        console.debug('[LatitudeMap] computed visible grid coords count:', pts.length, 'pixelStep:', pixelStep, 'deltaKeyChanged:', !dgUnchanged, 'centerChanged:', centerChanged);
+
+        if (inFlightRef.current) {
+          console.debug('[LatitudeMap] fetch in flight, skipping new fetch');
+          return;
+        }
+
+        inFlightRef.current = true;
+        try {
+          const payload = {
+            date: (() => {
+              const year = START_YEAR + Math.floor(monthIndex / 12);
+              const month = (monthIndex % 12) + 1;
+              return `${year.toString().padStart(4, '0')}-${month.toString().padStart(2, '0')}-01T00:00:00Z`;
+            })(),
+            depth,
+            view: selectedView,
+            coords: pts,
+            deltas: deltaGroup ?? undefined,
+          };
+          console.debug('[LatitudeMap] sending classifier request body (with deltas):', payload);
+          const res = await fetchModelData({ year: START_YEAR + Math.floor(monthIndex / 12), month: (monthIndex % 12) + 1, depth, coords: pts, deltas: deltaGroup ?? undefined });
+          console.log('[LatitudeMap] classifier response:', res);
+        } catch (err) {
+          console.error('[LatitudeMap] classifier call failed:', err);
+        } finally {
+          inFlightRef.current = false;
+        }
+      }
+    } catch (err) {
+      console.error('Failed to compute visible grid coords:', err);
+    }
+  }, [mapObj, viewState, monthIndex, depth, selectedView, fetchModelData, updateVisibleCoords, deltaGroup]);
+
+  // no on-screen debug overlay in this build
 
   const handleMapLoad = useCallback((e: any) => {
     // react-map-gl passes an event with target as the map instance
     const maybeMap = e?.target ?? e;
     setMapObj(maybeMap);
+    try {
+      const c = maybeMap && typeof maybeMap.getCenter === 'function' ? maybeMap.getCenter() : null;
+      if (c && c.lng != null && c.lat != null) lastCenterRef.current = { lng: c.lng, lat: c.lat };
+    } catch (e) {}
   }, []);
 
   // Use maplibre event-driven sampling instead of relying on viewState effects.
@@ -420,73 +519,7 @@ export default function MapLatitude({
   useEffect(() => {
     if (!mapObj) return;
 
-    let mounted = true;
     let debounceId: any = null;
-    let inFlight = false;
-    const thresholdZoom = 0.6; // lower zoom threshold (≈ scale 6)
-
-    const performSampleAndFetch = async () => {
-      if (!mounted) return;
-      try {
-        const zoom = mapObj.getZoom?.() ?? (viewState?.zoom as number) ?? 0;
-        console.log('[LatitudeMap] performSampleAndFetch - zoom:', zoom, 'thresholdZoom:', thresholdZoom);
-        if (zoom < thresholdZoom) {
-          updateVisibleCoords([]);
-          return;
-        }
-
-        const scale = Math.pow(2, zoom);
-        const canvas = mapObj.getCanvas && mapObj.getCanvas();
-        const width = (canvas && (canvas.clientWidth || canvas.width)) || 800;
-        const height = (canvas && (canvas.clientHeight || canvas.height)) || 600;
-        const pixelStep = Math.max(8, Math.round(800 / scale));
-
-        const pts: Array<[number, number]> = [];
-        for (let y = 0; y < height; y += pixelStep) {
-          for (let x = 0; x < width; x += pixelStep) {
-            try {
-              const ll = mapObj.unproject([x, y]);
-              if (ll && typeof ll.lng === 'number' && typeof ll.lat === 'number') pts.push([ll.lng, ll.lat]);
-            } catch {}
-          }
-        }
-
-        if (!lastPtsCountRef.current || lastPtsCountRef.current !== pts.length) {
-          updateVisibleCoords(pts);
-          lastPtsCountRef.current = pts.length;
-          console.log('[LatitudeMap] computed visible grid coords count:', pts.length, 'pixelStep:', pixelStep);
-
-          if (inFlight) {
-            console.log('[LatitudeMap] fetch in flight, skipping new fetch');
-            return;
-          }
-
-          inFlight = true;
-          try {
-            const payload = {
-              date: (() => {
-                const year = START_YEAR + Math.floor(monthIndex / 12);
-                const month = (monthIndex % 12) + 1;
-                return `${year.toString().padStart(4, '0')}-${month.toString().padStart(2, '0')}-01T00:00:00Z`;
-              })(),
-              depth,
-              view: selectedView,
-              coords: pts,
-              deltas: deltaGroup ?? undefined,
-            };
-            console.debug('[LatitudeMap] sending classifier request body (with deltas):', payload);
-            const res = await fetchModelData({ year: START_YEAR + Math.floor(monthIndex / 12), month: (monthIndex % 12) + 1, depth, coords: pts, deltas: deltaGroup ?? undefined });
-            console.log('[LatitudeMap] classifier response:', res);
-          } catch (err) {
-            console.error('[LatitudeMap] classifier call failed:', err);
-          } finally {
-            inFlight = false;
-          }
-        }
-      } catch (err) {
-        console.error('Failed to compute visible grid coords:', err);
-      }
-    };
 
     const handler = () => {
       if (debounceId) clearTimeout(debounceId);
@@ -504,11 +537,18 @@ export default function MapLatitude({
     handler();
 
     return () => {
-      mounted = false;
       if (debounceId) clearTimeout(debounceId);
       try { mapObj.off?.('moveend', handler); mapObj.off?.('zoomend', handler); } catch (e) {}
     };
-  }, [mapObj, fetchModelData, monthIndex, depth, selectedView, updateVisibleCoords, viewState]);
+  }, [mapObj, performSampleAndFetch]);
+
+  // Trigger sampling+fetch when deltaGroup changes (debounced)
+  useEffect(() => {
+    console.debug('[LatitudeMap] deltaGroup effect fired, mapObj?', !!mapObj, 'deltaGroup:', deltaGroup);
+    if (!mapObj) return;
+    const id = setTimeout(() => { void performSampleAndFetch(); }, 250);
+    return () => clearTimeout(id);
+  }, [deltaGroup, mapObj, performSampleAndFetch]);
 
   return (
     <div
@@ -579,6 +619,8 @@ export default function MapLatitude({
           −
         </button>
       </div>
+
+      
 
       {/* Remove the depth slider and time controls - commenting out the entire sections */}
       {/* 
