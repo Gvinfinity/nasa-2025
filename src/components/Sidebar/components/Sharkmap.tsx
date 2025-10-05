@@ -2,9 +2,13 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Map, ChevronDown } from "lucide-react";
 import { usePalette } from "../../../contexts/PaletteContext";
+import { ModeToggleButton } from "./ModeToggleButton";
 
 export const Sharkmap = () => {
   const [openMenu, setOpenMenu] = useState(false);
+  const [currentMapMode, setCurrentMapMode] = useState<"research" | "student">(
+    "research"
+  );
 
   const subItemVariants = {
     hidden: { opacity: 0, y: -10 },
@@ -43,11 +47,15 @@ export const Sharkmap = () => {
     );
   };
 
+  const handleModeChange = (mode: "research" | "student") => {
+    setCurrentMapMode(mode);
+  };
+
   return (
     <div className="flex flex-col w-full">
       <button
         onClick={() => setOpenMenu(!openMenu)}
-        className="flex items-center justify-between gap-2 p-2 rounded-lg hover:bg-blue-800/40 transition-all"
+        className="flex items-center justify-between gap-2 p-2 rounded-lg hover:bg-slate-800/60 transition-all"
       >
         <div className="flex items-center gap-3">
           <Map size={20} />
@@ -74,6 +82,10 @@ export const Sharkmap = () => {
             transition={{ duration: 0.3 }}
             className="ml-4 mt-3 grid grid-cols-2 gap-2 overflow-hidden"
           >
+            {/* Map Toggles here!!! */}
+            <div className="col-span-2 mb-4">
+              <ModeToggleButton onModeChange={handleModeChange} />
+            </div>
             {sharkMapOptions.map((opt, i) => (
               <motion.li
                 key={i}
@@ -90,8 +102,8 @@ export const Sharkmap = () => {
                   shadow-md
                   ${
                     opt.selected
-                      ? "bg-gradient-to-b from-blue-600 to-blue-800 border-blue-500 text-white shadow-lg shadow-blue-700/30"
-                      : "bg-gradient-to-b from-blue-950/40 to-blue-900/20 border-blue-800/50 text-blue-100 hover:from-blue-900/50 hover:to-blue-800/40 hover:border-blue-700"
+                      ? "bg-blue-700 border-blue-500 text-white shadow-lg"
+                      : "bg-slate-800/40 border-slate-700/50 text-blue-100 hover:bg-slate-700/60 hover:border-slate-600"
                   }
                 `}
               >

@@ -12,15 +12,11 @@ interface SidebarProps {
 }
 
 export const Sidebar = ({ children }: SidebarProps) => {
-  // map mode lives in the Sidebar and is injected into child map components
-  const [mapMode, setMapMode] = useState<"research" | "student">("research");
-  // selectedView control will use the PaletteContext via Sharkmap and other components;
-  // Sidebar also exposes a small control here to let users switch the active view.
-  // We'll clone children and inject `mapMode` so MapLatitude can read it as a prop.
-
   const injectedChildren = (children as any)
     ? React.Children.map(children as any, (child: any) =>
-        React.isValidElement(child) ? React.cloneElement(child, { mapMode } as any) : child
+        React.isValidElement(child)
+          ? React.cloneElement(child, { mapMode: "research" } as any)
+          : child
       )
     : children;
 
@@ -29,7 +25,7 @@ export const Sidebar = ({ children }: SidebarProps) => {
   return (
     <div className="flex">
       {/* Sidebar */}
-      <aside className="w-72 h-screen bg-gradient-to-b from-blue-900 to-blue-950 text-white flex flex-col items-start p-4 shadow-2xl relative overflow-hidden">
+      <aside className="w-72 h-screen bg-gradient-to-b from-blue-900 to-blue-950 text-white flex flex-col items-start p-4 shadow-2xl relative overflow-hidden overflow-y-auto">
         <nav className="flex flex-col gap-3 w-full text-sm mt-6">
           <Sharkmap />
           <KnowledgeHub setChildren={setChildren} />
@@ -38,15 +34,6 @@ export const Sidebar = ({ children }: SidebarProps) => {
           <NasaDataUsed />
           <MeetTheDevelopers />
         </nav>
-
-        <button
-          onClick={() =>
-            setMapMode((m) => (m === "research" ? "student" : "research"))
-          }
-          className="absolute bottom-6 left-4 w-fit px-3 py-1 cursor-pointer rounded-lg bg-blue-800/70 hover:bg-blue-700/80 text-sm"
-        >
-          {mapMode === "research" ? "Student Mode" : "Research Mode"}
-        </button>
 
         {/* Decorative background */}
         <motion.div
@@ -58,7 +45,7 @@ export const Sidebar = ({ children }: SidebarProps) => {
 
       {/* Main content */}
       <div className="flex-1 bg-black min-h-screen">
-  <div className="w-full h-full">{childrenSaved ?? injectedChildren}</div>
+        <div className="w-full h-full">{childrenSaved ?? injectedChildren}</div>
       </div>
     </div>
   );
