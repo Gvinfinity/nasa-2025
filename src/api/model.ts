@@ -1,10 +1,18 @@
 import { apiClient } from "./client";
 
-export interface ModelRequest {
+export interface DeltaGroup {
+  deltaTemp: number;
+  deltaClouds: number;
+  deltaOceanDepth: number;
+  deltaPhytoplankton: number;
+}
+
+export interface ClassifierDataRequest {
+  coords: number[][];
   date: string;
-  depth: number;
+  deltas?: DeltaGroup;
   view?: string;
-  coords?: number[][];
+  depth?: number;
 }
 
 export interface ModelResponse {
@@ -13,7 +21,7 @@ export interface ModelResponse {
 }
 
 export async function fetchModelData(
-  params: ModelRequest
+  params: ClassifierDataRequest
 ): Promise<ModelResponse> {
-  return apiClient.post<ModelResponse>("/model", params);
+  return apiClient.post<ModelResponse>("/", params);
 }

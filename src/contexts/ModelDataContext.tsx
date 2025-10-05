@@ -51,8 +51,10 @@ export const ModelDataProvider: React.FC<{ children: ReactNode }> = ({
   const month = opts?.month ?? (monthIndex % 12) + 1;
         const requestedDepth = opts?.depth ?? depth;
         const coords = opts?.coords;
-  // construct ISO date (first day of month) accepted by Python datetime
-  const date = `${year.toString().padStart(4, '0')}-${month.toString().padStart(2, '0')}-01`;
+  // construct full ISO datetime (first day of month at midnight UTC) accepted by Python datetime
+  const date = `${year.toString().padStart(4, '0')}-${month
+    .toString()
+    .padStart(2, '0')}-01T00:00:00Z`;
 
         let tuples: DataPoint[] = [];
 
@@ -63,7 +65,7 @@ export const ModelDataProvider: React.FC<{ children: ReactNode }> = ({
         } else {
           try {
             // call the statically imported API helper (include coords and date)
-            const res = await fetchModelDataFromAPI({ date, depth: requestedDepth, view: selectedView, coords });
+            const res = await fetchModelDataFromAPI({ date, depth: requestedDepth, view: selectedView, coords: coords ?? [] });
             // normalize response: accept either { data: [...] } or an array
             let raw: any[] = [];
             if (Array.isArray(res)) raw = res as any[];
@@ -112,11 +114,12 @@ export const ModelDataProvider: React.FC<{ children: ReactNode }> = ({
   const updateVisibleCoords = useCallback((coords: Array<[number, number]>) => {
     setVisibleCoords(coords);
     console.log('ModelDataProvider.visibleCoords updated (count):', coords.length);
-    // forward coords to fetchModelData so the API can use the zoomed area
-    const coordsList: number[][] = coords.map((c) => [c[0], c[1]]);
-    // call fetchModelData with coords; don't block UI on this
-    void fetchModelData({ coords: coordsList }).catch((e) => console.error('fetchModelData failed for coords:', e));
-  }, [fetchModelData]);
+    // NOTE: do not automatically call fetchModelData here. The caller
+    // (e.g. LatitudeMap) should decide when to request model data (for
+    // example, only when the zoom/scale threshold is reached). This keeps
+    // the provider free of viewport-specific heuristics and avoids
+    // feedback loops between model updates and viewport sampling.
+  }, []);
 
   return (
     <ModelDataContext.Provider

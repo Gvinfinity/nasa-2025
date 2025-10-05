@@ -1,17 +1,48 @@
 const BASE_URL = import.meta.env.VITE_API_URL; // e.g. "https://api.example.com"
 
 async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-  const response = await fetch(`${BASE_URL}${endpoint}`, {
+  const url = `${BASE_URL || ""}${endpoint}`;
+
+  // Debug outgoing request
+  try {
+    const method = (options.method || "GET").toUpperCase();
+    const bodyPreview = options.body ? options.body : undefined;
+    console.debug(`[api] ${method} ${url}`, bodyPreview);
+  } catch {
+    // ignore logging failures
+  }
+
+  const response = await fetch(url, {
     headers: { "Content-Type": "application/json" },
     ...options,
   });
 
   if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`HTTP ${response.status}: ${errorText}`);
+    // try to read response as JSON for structured errors, fall back to text
+  let errorBody: unknown = null;
+    try {
+      const text = await response.text();
+      try {
+        errorBody = JSON.parse(text);
+      } catch {
+        errorBody = text;
+      }
+    } catch (e) {
+      errorBody = `<failed to read response body: ${e}>`;
+    }
+
+    console.error(`[api] HTTP ${response.status} ${url}`, errorBody);
+    throw new Error(`HTTP ${response.status}: ${typeof errorBody === 'string' ? errorBody : JSON.stringify(errorBody)}`);
   }
 
-  return response.json();
+  // attempt to parse JSON, otherwise return text
+  try {
+    return await response.json();
+  } catch {
+    const text = await response.text();
+    // @ts-expect-error returning string instead of generic
+    return text;
+  }
 }
 
 export const apiClient = {
