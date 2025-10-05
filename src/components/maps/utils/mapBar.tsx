@@ -1,19 +1,18 @@
-// using a small toggle instead of the Button component
+import React, { useEffect } from "react";
 import { PALETTES } from "../utils/palettes";
 import { usePalette } from "../../../contexts/PaletteContext";
-import { useEffect } from "react";
 
 function MapGradient() {
   const { selectedView } = usePalette();
-  // map display names (e.g. "Temperature") to PALETTES keys (e.g. "temperature")
+
   const VIEW_TO_KEY: Record<string, string> = {
     Temperature: "temperature",
-    Salinity: "salinity",
-    "Ocean Topography": "topography",
-    "Ocean Currents": "currents",
-    Biomass: "biomass",
+    Clouds: "clouds",
+    "Ocean Depth": "ocean depth",
+    Phytoplanktons: "phytoplanktons",
     default: "default",
   };
+
   const paletteKey = VIEW_TO_KEY[selectedView ?? "default"] ?? "default";
   const palette = PALETTES[paletteKey] || PALETTES.default;
   const stops = palette.map((c, i) => {
@@ -23,35 +22,37 @@ function MapGradient() {
   const gradient = `linear-gradient(90deg, ${stops.join(", ")})`;
 
   useEffect(() => {
-    // This effect runs whenever selectedView changes
     console.log(`Selected view changed to: ${selectedView}`);
   }, [selectedView]);
 
   return (
-    <div className="ml-2 w-full">
-      <div className="h-4 rounded-sm" style={{ backgroundImage: gradient }} />
-      <div className="w-full font-medium flex flex-row justify-between h-fit">
+    <div className="flex flex-col gap-1 w-full">
+      <div
+        className="h-3 rounded-full shadow-inner"
+        style={{ backgroundImage: gradient }}
+      />
+      <div className="w-full flex justify-between text-xs text-white font-medium">
         {[0, 50, 100].map((pct) => (
-          <span key={pct} className="text-md">
-            {pct}
-          </span>
+          <span key={pct}>{pct}</span>
         ))}
       </div>
     </div>
   );
 }
 
+
 export default function MapBar() {
   return (
-    <div className="w-full absolute top-0 bg-zinc-400 text-black h-12 z-[1001]">
-      <div className="grid grid-cols-[minmax(220px,1fr)minmax(220px,300px)] items-center gap-2 h-full">
+    <div className="w-full absolute top-0 bg-white/30 backdrop-blur-md border border-white/20 text-white h-14 z-[1001] shadow-sm">
+      <div className="grid grid-cols-[minmax(200px,1fr)_minmax(220px,300px)_auto] items-center gap-2 px-4 h-full">
         <div className="flex items-center">
           <MapGradient />
         </div>
+
         <div className="text-center">
-          <p className="text-lg font-medium" style={{ fontSize: "1.125rem" }}>
+          <span className="text-base font-semibold text-white">
             Probability of Sharks (%)
-          </p>
+          </span>
         </div>
       </div>
     </div>

@@ -32,33 +32,19 @@ export const Sharkmap = ({
   };
 
   const [sharkMapOptions, setSharkMapOptions] = useState([
-    { name: "Temperature", icon: "🌡️", selected: false, color: [255, 0, 0] },
-    { name: "Salinity", icon: "🧂", selected: false, color: [0, 0, 255] },
-    {
-      name: "Ocean Topography",
-      icon: "🏔️",
-      selected: false,
-      color: [0, 255, 0],
-    },
-    {
-      name: "Ocean Currents",
-      icon: "🌊",
-      selected: false,
-      color: [255, 255, 0],
-    },
-    { name: "Biomass", icon: "🐟", selected: false, color: [255, 165, 0] },
+    { name: "Temperature", icon: "🌡️", color: [255, 0, 0], value: 50 },
+    { name: "Clouds", icon: "☁️", color: [200, 200, 200], value: 50 },
+    { name: "Ocean Depth", icon: "🌊", color: [0, 100, 200], value: 50 },
+    { name: "Phytoplanktons", icon: "🦠", color: [0, 255, 100], value: 50 },
   ]);
 
   const { setSelectedView, colorblindMode, setColorblindMode } = usePalette();
 
-  const handleItemClick = (i: number) => {
-    const selectedOption = sharkMapOptions[i];
-    setSelectedView(selectedOption.name);
-
+  const handleValueChange = (index: number, value: number) => {
     setSharkMapOptions((prev) =>
-      prev.map((option, index) => ({
+      prev.map((option, i) => ({
         ...option,
-        selected: index === i,
+        value: i === index ? value : option.value,
       }))
     );
   };
@@ -71,21 +57,20 @@ export const Sharkmap = ({
 
   return (
     <div className="flex flex-col w-full">
-      <button
+      <div
         onClick={() => setOpenMenu(!openMenu)}
-        className="flex items-center justify-between gap-2 p-2 rounded-lg hover:bg-slate-800/60 transition-all"
+        className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-800/60 transition-colors cursor-pointer"
       >
-        <div className="flex items-center gap-3">
-          <Map size={20} />
-          <span className="font-medium text-blue-100">Shark Map</span>
-        </div>
+        <Map size={22} className="text-neutral-100" />
+        <span className="font-semibold text-neutral-100 tracking-wide">Shark Map</span>
         <motion.div
           animate={{ rotate: openMenu ? 180 : 0 }}
           transition={{ duration: 0.3 }}
+          className="ml-auto"
         >
-          <ChevronDown size={18} />
+          <ChevronDown size={18} className="text-neutral-100" />
         </motion.div>
-      </button>
+      </div>
 
   {/* forcedOpen handled via effect */}
 
@@ -107,31 +92,6 @@ export const Sharkmap = ({
               <div className="flex flex-col gap-3">
                 <div className="flex items-center justify-between">
                   <ModeToggleButton onModeChange={handleModeChange} />
-                </div>
-
-                <div className="flex w-full items-center justify-between">
-                  <div className="flex justify-between w-full gap-3">
-                    <div className="flex items-center space-x-2">
-                      {/* <SprayCan className="text-white w-6 h-6" /> */}
-                      <span className="text-2xl">💨</span>
-                      <span className="text-sm">Aerosol</span>
-                    </div>
-
-                    <button
-                      aria-pressed={!!enabled}
-                      onClick={() => setEnabled?.(!enabled)}
-                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors hover:opacity-80 focus:outline-none ${
-                        enabled ? "bg-green-600" : "bg-white/5"
-                      }`}
-                      title="Enable map features"
-                    >
-                      <span
-                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                          enabled ? "translate-x-6" : "translate-x-1"
-                        }`}
-                      />
-                    </button>
-                  </div>
                 </div>
 
                 <div className="flex w-full items-center justify-between">
@@ -167,39 +127,50 @@ export const Sharkmap = ({
                 initial="hidden"
                 animate="visible"
                 transition={{ delay: i * 0.05 }}
-                onClick={() => handleItemClick(i)}
-                className={`
-                  cursor-pointer
-                  flex flex-col items-center justify-center
-                  p-4 rounded-xl border backdrop-blur-sm
-                  transition-all duration-300
-                  shadow-md
-                  ${
-                    opt.selected
-                      ? "bg-blue-700 border-blue-500 text-white shadow-lg"
-                      : "bg-slate-800/40 border-slate-700/50 text-blue-100 hover:bg-slate-700/60 hover:border-slate-600"
-                  }
-                `}
+                className="col-span-2 mb-4"
               >
-                {opt.icon && (
-                  <span className="text-3xl mb-2 opacity-90 drop-shadow-md">
-                    {opt.icon}
-                  </span>
-                )}
-                <span
-                  className={`text-sm font-medium tracking-wide ${
-                    opt.selected ? "text-white" : "text-blue-100/90"
-                  }`}
+                <div
+                  className="
+                    flex flex-col items-center justify-center
+                    p-4 rounded-xl border backdrop-blur-sm
+                    transition-all duration-300
+                    shadow-md mb-3
+                    bg-slate-800/40 border-slate-700/50 text-blue-100
+                  "
                 >
-                  {opt.name}
-                </span>
+                  {opt.icon && (
+                    <span className="text-2xl mb-2 opacity-90 drop-shadow-md">
+                      {opt.icon}
+                    </span>
+                  )}
+                  <span className="text-sm font-medium tracking-wide text-blue-100/90">
+                    {opt.name}
+                  </span>
+                </div>
 
-                {opt.selected && (
-                  <motion.div
-                    layoutId="selectedIndicator"
-                    className="mt-2 w-2.5 h-2.5 bg-blue-300 rounded-full shadow-inner"
+                {/* Parameter control bar */}
+                <div className="px-2">
+                  <div className="flex items-center justify-between text-xs text-blue-200 mb-1">
+                    <span>Low</span>
+                    <span className="font-medium">{opt.value * 2}%</span>
+                    <span>High</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={0}
+                    max={100}
+                    value={opt.value}
+                    onChange={(e) => handleValueChange(i, Number(e.target.value))}
+                    className="w-full h-2 bg-slate-600 rounded-lg appearance-none cursor-pointer slider-thumb"
+                    style={{
+                      background: `linear-gradient(to right, 
+                        rgb(${opt.color[0]}, ${opt.color[1]}, ${opt.color[2]}) 0%, 
+                        rgb(${opt.color[0]}, ${opt.color[1]}, ${opt.color[2]}) ${opt.value}%, 
+                        #475569 ${opt.value}%, 
+                        #475569 100%)`
+                    }}
                   />
-                )}
+                </div>
               </motion.li>
             ))}
           </motion.ul>

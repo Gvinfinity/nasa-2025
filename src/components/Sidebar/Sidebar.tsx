@@ -48,31 +48,27 @@ export const Sidebar = ({ children }: SidebarProps) => {
       <div className="flex">
         {/* Sidebar */}
         <aside className="w-72 h-screen bg-gradient-to-b from-blue-900 to-blue-950 text-white flex flex-col items-start p-4 shadow-2xl relative overflow-hidden overflow-y-auto">
-            <div className="flex flex-row h-fit justify-center items-center gap-3">
-            <img src="/public/sharko.png" alt="Sharko, the Shark Seet" className="w-20 h-20 self-center" />
-            <h1 className="font-bold text-3xl bg-gradient-to-r from-blue-100 via-cyan-300 to-blue-200 bg-clip-text text-transparent drop-shadow-[0_0_25px_rgba(59,130,246,0.3)] flex items-center h-14">
+          <div className="flex items-center justify-center gap-3 h-fit">
+            <img
+              src="/public/sharko.png"
+              alt="Sharko, the Shark Seer"
+              className="w-20 h-20"
+            />
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-100 via-cyan-300 to-blue-200 bg-clip-text text-transparent drop-shadow-[0_0_25px_rgba(59,130,246,0.3)]">
               Shark Seer
             </h1>
-            </div>
-          <nav className="flex flex-col gap-3 w-full text-sm mt-6">
-            <div onClick={() => setChildren(null)}>
-              <Sharkmap
-                setMapMode={setMapMode}
-                enabled={enabled}
-                setEnabled={setEnabled}
-                forcedOpen={activeSidebarTab === "sharkmap"}
-              />
-            </div>
+          </div>
+          <nav className="flex flex-col gap-3 w-full mt-6">
+            <Sharkmap
+              setMapMode={setMapMode}
+              enabled={enabled}
+              setEnabled={setEnabled}
+              forcedOpen={activeSidebarTab === "sharkmap"}
+            />
             <KnowledgeHub setChildren={setChildren} />
-            <div onClick={() => setChildren(null)}>
-              <PredictSharkMovement />
-            </div>
-            <div onClick={() => setChildren(null)}>
-              <Tutorial />
-            </div>
-            <div onClick={() => setChildren(null)}>
-              <MeetTheTeam />
-            </div>
+            <PredictSharkMovement />
+            <Tutorial />
+            <MeetTheTeam />
           </nav>
 
           {/* Decorative background */}

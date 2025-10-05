@@ -80,10 +80,9 @@ export default function GridMap({
     // Example: Define unique data for each view
     const viewData = {
       Temperature: tuples,
-      Salinity: tuples, // Replace with salinity-specific tuples
-      "Ocean Topography": tuples, // Replace with topography-specific tuples
-      "Ocean Currents": tuples, // Replace with currents-specific tuples
-      Biomass: tuples, // Replace with biomass-specific tuples
+      Clouds: tuples,
+      "Ocean Depth": tuples,
+      Phytoplanktons: tuples,
     } as const;
 
     const currentData = (selectedView && selectedView in viewData) 

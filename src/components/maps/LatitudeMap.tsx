@@ -73,18 +73,15 @@ export default function MapLatitude({
   const START_YEAR = 2020;
   const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   const TOTAL_MONTHS = 60;
-  // const selectedYear = START_YEAR + Math.floor(monthIndex / 12);
-  // const selectedMonth = (monthIndex % 12) + 1; // 1..12
 
   const { selectedView, colorblindMode } = usePalette();
   const activeView = selectedView ?? "default";
   // map display names to internal palette keys
   const VIEW_TO_KEY: Record<string, string> = {
     Temperature: "temperature",
-    Salinity: "salinity",
-    "Ocean Topography": "topography",
-    "Ocean Currents": "currents",
-    Biomass: "biomass",
+    Clouds: "clouds",
+    "Ocean Depth": "ocean depth",
+    Phytoplanktons: "phytoplanktons",
     default: "default",
   };
   const activePaletteKey = VIEW_TO_KEY[activeView] ?? "default";
@@ -95,30 +92,6 @@ export default function MapLatitude({
     if (!modelData || typeof modelData === "string") return [] as Array<{ position: number[]; weight: number }>;
     return (modelData as DataPoint[]).map((d) => ({ position: [d[0], d[1]], weight: d[2] }));
   }, [modelData]);
-
-  // local, debounced slider state to avoid rapid provider fetches
-  const [displayMonth, setDisplayMonth] = useState<number>(monthIndex);
-  const [displayDepth, setDisplayDepth] = useState<number>(depth);
-
-  // sync local display state when provider values change externally
-  useEffect(() => setDisplayMonth(monthIndex), [monthIndex]);
-  useEffect(() => setDisplayDepth(depth), [depth]);
-
-  // debounce month -> setMonthIndex
-  useEffect(() => {
-    const t = setTimeout(() => {
-      if (displayMonth !== monthIndex) setMonthIndex(displayMonth);
-    }, 350);
-    return () => clearTimeout(t);
-  }, [displayMonth, monthIndex, setMonthIndex]);
-
-  // debounce depth -> setDepth
-  useEffect(() => {
-    const t = setTimeout(() => {
-      if (displayDepth !== depth) setDepth(displayDepth);
-    }, 300);
-    return () => clearTimeout(t);
-  }, [displayDepth, depth, setDepth]);
 
   const { tooltip, makeHoverHandler, makeHoverHandlerSilent, cursor } = useMapTooltip();
 
@@ -223,10 +196,26 @@ export default function MapLatitude({
     }));
   }, []);
 
+  const handleZoomIn = useCallback(() => {
+    setViewState((prev) => ({
+      ...prev,
+      zoom: Math.min((prev.zoom as number) + 1, 20),
+      transitionDuration: 300,
+    }));
+  }, []);
+
+  const handleZoomOut = useCallback(() => {
+    setViewState((prev) => ({
+      ...prev,
+      zoom: Math.max((prev.zoom as number) - 1, 0),
+      transitionDuration: 300,
+    }));
+  }, []);
+
   const layers: any[] = [
     (() => {
       // Build colorRange expected by deck.gl HeatmapLayer: array of [r,g,b,a]
-  const palette = activePalette;
+      const palette = activePalette;
       const heatColorRange = Array.isArray(palette)
         ? palette.map((c: number[]) => [c[0], c[1], c[2], 255])
         : [];
@@ -257,9 +246,9 @@ export default function MapLatitude({
           }));
           return true;
         },
-  // colorRange typing is strict; cast at runtime after validation
-  colorRange: heatColorRange as unknown as any,
-  // show quiz flags when enabled (student mode) — either MapBar enabled or explicit student mapMode
+        // colorRange typing is strict; cast at runtime after validation
+        colorRange: heatColorRange as unknown as any,
+        // show quiz flags when enabled (student mode) — either MapBar enabled or explicit student mapMode
         onHover: makeHoverHandler((obj: any, info: any) => {
           const lon = info?.coordinate?.[0] ?? obj[0] ?? NaN;
           const lat = info?.coordinate?.[1] ?? obj[1] ?? NaN;
@@ -275,8 +264,8 @@ export default function MapLatitude({
       getPosition: (d) => d.position,
       getRadius: (_d: any) => 4,
       getFillColor: (d) => {
-  const t = Math.max(0, Math.min(1, (d.weight || 0) / 10));
-  const [r, g, b] = colorForValue(activePalette, t);
+        const t = Math.max(0, Math.min(1, (d.weight || 0) / 10));
+        const [r, g, b] = colorForValue(activePalette, t);
         return [r, g, b, 200];
       },
       onClick: onDotClick,
@@ -411,8 +400,6 @@ export default function MapLatitude({
     // map-layer for icons. quizPointsData will be used below to compute overlays.
   }
 
-  
-
   const cursorStyle = cursor;
 
   // local ref to the underlying MapLibre map instance
@@ -475,7 +462,7 @@ export default function MapLatitude({
         cursor: cursorStyle,
       }}
     >
-  <MapBar />
+      <MapBar />
 
       <DeckGL
         style={{ zIndex: "0" }}
@@ -517,86 +504,34 @@ export default function MapLatitude({
         </div>
       )}
 
-      {/* Vertical depth slider on the right */}
+      {/* Zoom controls */}
+      <div className="absolute top-20 right-4 z-[1002] flex flex-col gap-2">
+        <button
+          onClick={handleZoomIn}
+          className="w-10 h-10 bg-white/90 hover:bg-white text-black rounded border border-gray-300 flex items-center justify-center font-bold text-lg shadow-md transition-colors"
+          aria-label="Zoom in"
+        >
+          +
+        </button>
+        <button
+          onClick={handleZoomOut}
+          className="w-10 h-10 bg-white/90 hover:bg-white text-black rounded border border-gray-300 flex items-center justify-center font-bold text-lg shadow-md transition-colors"
+          aria-label="Zoom out"
+        >
+          −
+        </button>
+      </div>
+
+      {/* Remove the depth slider and time controls - commenting out the entire sections */}
+      {/* 
       <div className="absolute bottom-[15%] rotate-[270deg] right-1 z-2003 flex items-center">
-        <div style={{ writingMode: 'vertical-rl',  color: 'white', fontSize: 11, opacity: 0.9 }}>{displayDepth} m</div>
-        <input
-          type="range"
-          min={0}
-          max={3000}
-          step={10}
-          value={displayDepth}
-          onChange={(e) => setDisplayDepth(Number(e.target.value))}
-          style={{ height: 140 }}
-          aria-label="Depth (m)"
-          className="rounded-lg bg-white/80 cursor-pointer"
-        />
+        ...depth slider removed...
       </div>
       
-        <div  className="absolute left-12 right-12 bottom-2 z-2002 px-3 py-0 rounded-2xl text-black bg-zinc-400/60">
-          <div className="flex items-center gap-6 ">
-            <input
-              type="range"
-              min={0}
-              max={TOTAL_MONTHS - 1}
-              value={displayMonth}
-              onChange={(e) => setDisplayMonth(Number(e.target.value))}
-            style={{ flex: 1 }}
-            className="rounded-lg bg-white/80 cursor-pointer"
-            />
-          </div>
-
-          {/* year labels above the slider + proportional month labels underneath */}
-          <div className="relative h-2 mt-6">
-            {/* Years (2020..2024) positioned proportionally above the slider */}
-            <div className="absolute left-6 right-6 bottom-[50px] h-4">
-              {Array.from({ length: 5 }).map((_, yi) => {
-                const year = START_YEAR + yi;
-                const pct = (yi / (5 - 1)) * 100; // 0..100 over five years
-                return (
-                  <div
-                    key={year}
-                    style={{
-                      position: 'absolute',
-                      left: `calc(${pct}% )`,
-                      transform: 'translateX(-50%)',
-                      top: 0,
-                      fontSize: 12,
-                      fontWeight: 600,
-                    }}
-                    className="text-white"
-                  >
-                    {year}
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* proportional month labels: positioned across the full monthIndex range */}
-            <div style={{ position: 'absolute', left: 6, right: 6, top: -20, height: 5 }}>
-              {Array.from({ length: 12 }).map((_, i) => {
-                const pct = (i / (12 - 1)) * 100; // 0..100
-                const monthIdx = Math.round((i / (12 - 1)) * (TOTAL_MONTHS - 1));
-                const m = MONTHS[monthIdx % 12];
-                return (
-                  <div
-                    key={i}
-                    style={{
-                      position: 'absolute',
-                      left: `calc(${pct}% )`,
-                      transform: 'translateX(-50%)',
-                      fontSize: 14,
-                      fontWeight: 500,
-                    }}
-                  >
-                    {m}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      
+      <div className="absolute left-12 right-12 bottom-2 z-2002 px-3 py-0 rounded-2xl text-black bg-zinc-400/60">
+        ...time controls removed...
+      </div>
+      */}
       
       <Dialog
         open={quizDialogOpen}
@@ -606,11 +541,9 @@ export default function MapLatitude({
         options={activeQuestion?.options}
         correctAnswer={activeQuestion?.answer}
         onAnswer={(isCorrect, selected) => {
-          // simple feedback handling: close dialog after a short delay if correct
           if (isCorrect) {
             setTimeout(() => setQuizDialogOpen(false), 900);
           }
-          // otherwise keep it open so user sees the red highlight
           console.info("Answer selected:", selected, "correct:", isCorrect);
         }}
       />
