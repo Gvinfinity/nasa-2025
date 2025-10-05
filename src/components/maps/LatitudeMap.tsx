@@ -265,18 +265,22 @@ export default function MapLatitude({
       // Larger, softer halos: radius scaled up and alpha reduced for diffusion
       getRadius: (d: any) => {
         const weight = (d && d.weight) || 0;
-        const base = 6 + Math.min(12, Math.max(0, weight / 2));
+        // Reduce base so halos are smaller overall; weight affects size but less aggressively
+        const base = 3 + Math.min(8, Math.max(0, weight / 4));
         // shrink with zoom: higher zoom -> smaller visual radius
         const z = (viewState && (viewState.zoom as number)) || 1;
-        const zoomScale = Math.max(0.4, 1 / (Math.pow(2, Math.max(0, z - 3))));
+        const zoomScale = Math.max(0.35, 1 / (Math.pow(2, Math.max(0, z - 3.5))));
         return Math.round(base * zoomScale);
       },
       radiusMinPixels: 2,
       getFillColor: (d) => {
+        // Normalize weight to [0..1]. We assume weights are roughly in 0..10
+        // range; clamp to be defensive. Lower weights produce lower alpha.
         const t = Math.max(0, Math.min(1, (d.weight || 0) / 10));
         const [r, g, b] = colorForValue(activePalette, t);
-        // lower alpha for a more transparent, diffused halo
-        return [r, g, b, 80];
+        // Alpha: range from ~30 (low weight) up to ~220 (high weight)
+        const alpha = Math.round(30 + t * 190);
+        return [r, g, b, alpha];
       },
       opacity: 0.7,
       onClick: onDotClick,
@@ -329,11 +333,11 @@ export default function MapLatitude({
         // halo size derived from icon base size and pulse, scaled by zoom
         getRadius: (_d: any) => {
           const width = (iconMapping?.flag?.width as number) ?? 64;
-          const baseIcon = Math.max(16, Math.floor(width / 0.75));
-          // make halo larger than icon to be an easier target
-          const baseHalo = Math.max(6, Math.floor(baseIcon * 0.4));
+          const baseIcon = Math.max(12, Math.floor(width / 1.0));
+          // make halo slightly larger than icon but smaller than before
+          const baseHalo = Math.max(4, Math.floor(baseIcon * 0.25));
           // pulse independent of zoom
-          const radius = Math.round(baseHalo * (1 + pulse * 0.12));
+          const radius = Math.round(baseHalo * (1 + pulse * 0.08));
           return radius;
         },
         radiusUnits: "pixels",
