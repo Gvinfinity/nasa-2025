@@ -134,6 +134,7 @@ export default function MapLatitude({
   // dynamically build iconMapping from the imported flag image so IconLayer
   // will render correctly regardless of the image's actual pixel size.
   const [iconMapping, setIconMapping] = useState<any | null>(null);
+  const [iconImage, setIconImage] = useState<HTMLImageElement | null>(null);
   // simple RAF-driven pulse value in [0..1]
   const [pulse, setPulse] = useState(0);
   useEffect(() => {
@@ -195,6 +196,7 @@ export default function MapLatitude({
           anchorX: Math.floor(w / 2),
         },
       });
+      setIconImage(img);
     };
     img.onerror = () => {
       // fallback mapping if load fails
@@ -367,9 +369,10 @@ export default function MapLatitude({
       new IconLayer<any>({
         id: "quiz-flags",
         data: quizPointsData,
-        pickable: false,
-        // use the single-image atlas
-        iconAtlas: flagStudentIcon as any,
+        pickable: true,
+        // use the loaded Image element when available, otherwise fall back to URL
+        iconAtlas: (iconImage as any) || (flagStudentIcon as any),
+        sizeUnits: 'pixels',
         // use dynamic mapping when available
         iconMapping: iconMapping || { flag: { x: 0, y: 0, width: 64, height: 64, anchorY: 64, anchorX: 32 } },
         getIcon: (_d: any) => "flag",
