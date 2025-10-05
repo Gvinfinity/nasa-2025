@@ -16,8 +16,14 @@ import { FlyToInterpolator } from "@deck.gl/core";
 import type { MapViewState } from "@deck.gl/core";
 import MapBar from "./utils/mapBar";
 import { mockQuizPoints, QuizPoint } from "../../data/mock/mockQuestionsData";
-import { mockAerosol, ROWS as A_ROWS, COLS as A_COLS, BBOX as A_BBOX } from "../../data/mock/mockAerosol";
+import {
+  mockAerosol,
+  ROWS as A_ROWS,
+  COLS as A_COLS,
+  BBOX as A_BBOX,
+} from "../../data/mock/mockAerosol";
 import flagStudentIcon from "../../assets/flag_student.png";
+import { motion } from "framer-motion";
 import Dialog from "../ui/dialog";
 import { useModelData } from "../../contexts/ModelDataContext";
 
@@ -36,7 +42,12 @@ const INITIAL_VIEW_STATE = {
 const MAP_STYLE =
   "https://basemaps.cartocdn.com/gl/dark-matter-nolabels-gl-style/style.json";
 
-type DataPoint = [longitude: number, latitude: number, count: number, depth?: number];
+type DataPoint = [
+  longitude: number,
+  latitude: number,
+  count: number,
+  depth?: number
+];
 
 interface LatitudeMapProps {
   modelData?: Array<DataPoint> | string;
@@ -58,7 +69,7 @@ export default function MapLatitude({
   mapStyle = MAP_STYLE,
   quizData = mockQuizPoints,
   mapMode: mapModeProp,
-  enabled: enabledProp
+  enabled: enabledProp,
 }: LatitudeMapProps) {
   const [viewState, setViewState] = useState<
     MapViewState & { transitionDuration?: number; transitionInterpolator?: any }
@@ -71,7 +82,20 @@ export default function MapLatitude({
   // Use ModelData context for monthIndex/depth and modelData
   const { modelData, monthIndex, setMonthIndex, depth, setDepth, updateVisibleCoords, fetchModelData, deltaGroup } = useModelData();
   const START_YEAR = 2020;
-  const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const MONTHS = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
   const TOTAL_MONTHS = 60;
 
   const { selectedView, colorblindMode } = usePalette();
@@ -86,14 +110,22 @@ export default function MapLatitude({
   };
   const activePaletteKey = VIEW_TO_KEY[activeView] ?? "default";
   const cbKey = `${activePaletteKey}_cb`;
-  const activePalette = (colorblindMode && PALETTES[cbKey]) ? PALETTES[cbKey] : (PALETTES[activePaletteKey] || PALETTES.default);
+  const activePalette =
+    colorblindMode && PALETTES[cbKey]
+      ? PALETTES[cbKey]
+      : PALETTES[activePaletteKey] || PALETTES.default;
 
   const points = useMemo(() => {
-    if (!modelData || typeof modelData === "string") return [] as Array<{ position: number[]; weight: number }>;
-    return (modelData as DataPoint[]).map((d) => ({ position: [d[0], d[1]], weight: d[2] }));
+    if (!modelData || typeof modelData === "string")
+      return [] as Array<{ position: number[]; weight: number }>;
+    return (modelData as DataPoint[]).map((d) => ({
+      position: [d[0], d[1]],
+      weight: d[2],
+    }));
   }, [modelData]);
 
-  const { tooltip, makeHoverHandler, makeHoverHandlerSilent, cursor } = useMapTooltip();
+  const { tooltip, makeHoverHandler, makeHoverHandlerSilent, cursor } =
+    useMapTooltip();
 
   // dialog state for quiz questions
   const [quizDialogOpen, setQuizDialogOpen] = useState(false);
@@ -294,7 +326,12 @@ export default function MapLatitude({
           const [r, g, b] = colorForValue(activePalette, t);
           // invert the color to get the 'opposite' color
           // use alpha=128 for ~50% transparency
-          return [255 - Math.round(r), 255 - Math.round(g), 255 - Math.round(b), 100];
+          return [
+            255 - Math.round(r),
+            255 - Math.round(g),
+            255 - Math.round(b),
+            100,
+          ];
         },
         getLineColor: () => [0, 0, 0, 255],
         lineWidthMinPixels: 1,
@@ -346,7 +383,12 @@ export default function MapLatitude({
           }));
           const q = obj.question;
           console.log(q);
-          setActiveQuestion({ questionText: q.question, options: q.options, answer: q.answer, image: q.image });
+          setActiveQuestion({
+            questionText: q.question,
+            options: q.options,
+            answer: q.answer,
+            image: q.image,
+          });
           setQuizDialogOpen(true);
         },
         // use the silent handler so the halo shows pointer cursor but does not create tooltip content
@@ -361,9 +403,11 @@ export default function MapLatitude({
         pickable: true,
         // use the loaded Image element when available, otherwise fall back to URL
         iconAtlas: (iconImage as any) || (flagStudentIcon as any),
-        sizeUnits: 'pixels',
+        sizeUnits: "pixels",
         // use dynamic mapping when available
-        iconMapping: iconMapping || { flag: { x: 0, y: 0, width: 64, height: 64, anchorY: 64, anchorX: 32 } },
+        iconMapping: iconMapping || {
+          flag: { x: 0, y: 0, width: 64, height: 64, anchorY: 64, anchorX: 32 },
+        },
         getIcon: (_d: any) => "flag",
         sizeScale: 1,
         getSize: (_d: any) => {
@@ -390,7 +434,11 @@ export default function MapLatitude({
           }));
           // open dialog with the question
           const q = obj.question;
-          setActiveQuestion({ questionText: q.question, options: q.options, answer: q.answer });
+          setActiveQuestion({
+            questionText: q.question,
+            options: q.options,
+            answer: q.answer,
+          });
           setQuizDialogOpen(true);
         },
       })
@@ -563,8 +611,75 @@ export default function MapLatitude({
         onViewStateChange={(e: any) => setViewState(e.viewState)}
         layers={layers}
       >
-        <Map reuseMaps mapStyle={mapStyle} mapLib={maplibregl as any} attributionControl={false} onLoad={handleMapLoad} />
+        <Map
+          reuseMaps
+          mapStyle={mapStyle}
+          mapLib={maplibregl as any}
+          attributionControl={false}
+          onLoad={handleMapLoad}
+        />
       </DeckGL>
+{effectiveMapMode === "student" && quizData && (
+  <div className="absolute inset-0 pointer-events-none z-[1003]">
+    {(Array.isArray(quizData) ? quizData : []).map((q, idx) => {
+      // transform map coordinates to screen pixels
+      if (!mapObj) return null;
+      const point = mapObj.project([q[0], q[1]]);
+      if (!point) return null;
+      const [x, y] = point;
+
+      return (
+        <div
+          key={idx}
+          style={{
+            position: "absolute",
+            left: x - 24, // offset center
+            top: y - 24,
+            width: 48,
+            height: 48,
+          }}
+          className="flex items-center justify-center"
+        >
+          {/* main wave ripples */}
+          {[0, 1, 2].map((i) => (
+            <motion.div
+              key={i}
+              className="absolute rounded-full bg-blue-400/40 blur-sm"
+              style={{
+                width: "100%",
+                height: "100%",
+              }}
+              animate={{
+                scale: [1, 2],
+                opacity: [0.8, 0],
+              }}
+              transition={{
+                duration: 2.4,
+                delay: i * 0.5,
+                repeat: Infinity,
+                ease: "easeOut",
+              }}
+            />
+          ))}
+
+          {/* small static center pulse */}
+          <motion.div
+            className="w-3 h-3 bg-blue-500 rounded-full shadow-md"
+            animate={{
+              scale: [1, 1.3, 1],
+            }}
+            transition={{
+              duration: 1.2,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+          />
+        </div>
+      );
+    })}
+  </div>
+)}
+
 
       {tooltip && (
         <div
@@ -626,7 +741,7 @@ export default function MapLatitude({
         ...time controls removed...
       </div>
       */}
-      
+
       <Dialog
         open={quizDialogOpen}
         onClose={() => setQuizDialogOpen(false)}

@@ -10,7 +10,7 @@ const Slide2: React.FC = () => {
 
   return (
     <motion.div
-      className="relative w-full h-screen flex flex-col justify-between items-center overflow-hidden"
+      className="relative w-full h-screen flex flex-col justify-between items-center overflow-auto"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 1.5 }}

@@ -3,13 +3,14 @@ import { motion } from "framer-motion";
 import Background from "../../../../../../Background";
 import { Button } from "../../../../../../Button";
 import { useSliderProvider } from "../../../../../../../contexts/SliderContext";
+import TextWithSpeech from "../../../../TextWithSpeech";
 
 const Slide3: React.FC = () => {
   const { prevSlide } = useSliderProvider();
 
   return (
     <motion.div
-      className="relative w-full h-screen flex flex-col justify-between items-center overflow-hidden"
+      className="relative w-full h-screen flex flex-col justify-between items-center overflow-auto"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 1.5 }}
@@ -30,6 +31,9 @@ const Slide3: React.FC = () => {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8, delay: 0.3 }}
           />
+
+          <TextWithSpeech textToRead="Look at the image above to see how the ecological state of sharks has decreased throughout different time periods, especially after the pre-human period." />
+
         </motion.p>
       </div>
       {/* Navigation buttons */}
