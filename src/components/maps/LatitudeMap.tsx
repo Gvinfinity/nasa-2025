@@ -432,25 +432,64 @@ export default function MapLatitude({
     try {
       const zoom = mapObj.getZoom?.() ?? (viewState?.zoom as number) ?? 0;
       console.debug('[LatitudeMap] performSampleAndFetch - zoom:', zoom);
-      const scale = Math.pow(2, zoom);
-      const canvas = mapObj.getCanvas && mapObj.getCanvas();
-      const width = (canvas && (canvas.clientWidth || canvas.width)) || 800;
-      const height = (canvas && (canvas.clientHeight || canvas.height)) || 600;
-  // Compute pixel step from a desired number of samples across the width.
-  // This makes sampling denser at wide (low) zooms because `scale` is small.
-  // desiredSamples scales with `scale` but is clamped to reasonable bounds.
-  const desiredSamples = Math.max(10, Math.min(200, Math.round(scale * 6)));
-  const pixelStep = Math.max(4, Math.round(width / desiredSamples));
+  // no canvas size needed for anchored geographic grid sampling
+  // Anchored geographic grid sampling (Option B): compute lon/lat points from
+  // a fixed-degree grid aligned to a global origin. This guarantees that
+  // zooming only changes visual size, not which geographic sample points are
+  // chosen. We coarsen the grid step (doubling) until the number of points
+  // is below MAX_POINTS to avoid huge payloads.
+  const MAX_POINTS = 1000;
+  // initial grid step in degrees (~5.5 km at equator for 0.05°)
+  let lonStep = 0.05;
+  let latStep = 0.05;
 
-      const pts: Array<[number, number]> = [];
-      for (let y = 0; y < height; y += pixelStep) {
-        for (let x = 0; x < width; x += pixelStep) {
-          try {
-            const ll = mapObj.unproject([x, y]);
-            if (ll && typeof ll.lng === 'number' && typeof ll.lat === 'number') pts.push([ll.lng, ll.lat]);
-          } catch {}
+  // helper to build pts for a given step, handling antimeridian
+  const buildPtsForStep = (ls: number, lt: number) => {
+    const out: Array<[number, number]> = [];
+    try {
+      const bounds = mapObj.getBounds?.();
+      if (!bounds) return out;
+      // MapLibre LngLatBounds supports getWest/getSouth/getEast/getNorth
+      let west = bounds.getWest?.();
+      let south = bounds.getSouth?.();
+      let east = bounds.getEast?.();
+      let north = bounds.getNorth?.();
+
+      if ([west, south, east, north].some((v) => typeof v !== 'number')) return out;
+
+      // normalize to -180..180 for iteration; if crossing antimeridian, we'll
+      // treat east as > west by adding 360 to east
+      if (east < west) east += 360;
+
+      const startLon = Math.floor(west / ls) * ls;
+      const startLat = Math.floor(south / lt) * lt;
+
+      for (let lat = startLat; lat <= north; lat = Math.round((lat + lt) * 1e12) / 1e12) {
+        if (lat < -90 || lat > 90) continue;
+        for (let lon = startLon; lon <= east; lon = Math.round((lon + ls) * 1e12) / 1e12) {
+          // wrap lon back to -180..180 range for the payload
+          let outLon = lon;
+          if (outLon > 180) outLon = ((outLon + 180) % 360) - 180;
+          out.push([outLon, lat]);
         }
       }
+    } catch (e) {
+      // fall through to return empty
+    }
+    return out;
+  };
+
+  // build and coarsen until under MAX_POINTS (or until step grows large)
+  let pts = buildPtsForStep(lonStep, latStep);
+  let attempts = 0;
+  while (pts.length > MAX_POINTS && attempts < 8) {
+    lonStep *= 2;
+    latStep *= 2;
+    pts = buildPtsForStep(lonStep, latStep);
+    attempts += 1;
+  }
+
+  const pixelStep = null; // keep for debug message compatibility below
 
       // Determine whether we should fetch: either pts count changed OR
       // the slider-driven deltaGroup changed since the last fetch OR
