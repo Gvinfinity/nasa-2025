@@ -44,7 +44,7 @@ function MapGradient() {
 export default function MapBar() {
   return (
     <div className="w-full absolute top-0 bg-zinc-300 text-black h-12 z-[1001]">
-      <div className="grid grid-cols-[minmax(220px,1fr)_1fr_auto] items-center gap-2 h-full">
+      <div className="grid grid-cols-[minmax(220px,1fr)minmax(220px,300px)] items-center gap-2 h-full">
         <div className="flex items-center">
           <MapGradient />
         </div>

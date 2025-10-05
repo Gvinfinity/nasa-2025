@@ -102,7 +102,7 @@ export const Sharkmap = ({
                   <div className="flex justify-between w-full gap-3">
                     <div className="flex items-center space-x-2">
                       <SprayCan className="text-white w-6 h-6" />
-                      <span className="text-sm">Enable</span>
+                      <span className="text-sm">Aerosol</span>
                     </div>
 
                     <button
