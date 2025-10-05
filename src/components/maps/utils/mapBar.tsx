@@ -9,7 +9,6 @@ function MapGradient() {
     Temperature: "temperature",
     Clouds: "clouds",
     "Ocean Depth": "ocean depth",
-    Phytoplanktons: "phytoplanktons",
     default: "default",
   };
 

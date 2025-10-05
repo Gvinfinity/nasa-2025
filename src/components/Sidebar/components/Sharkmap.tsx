@@ -30,7 +30,6 @@ export const Sharkmap = ({ setMapMode, forcedOpen }: SharkmapProps) => {
     { name: "Temperature", icon: "🌡️", color: [255, 0, 0], value: 50 },
     { name: "Clouds", icon: "☁️", color: [200, 200, 200], value: 50 },
     { name: "Ocean Depth", icon: "🌊", color: [0, 100, 200], value: 50 },
-    { name: "Phytoplanktons", icon: "🦠", color: [0, 255, 100], value: 50 },
   ]);
 
   const { colorblindMode, setColorblindMode } = usePalette();
@@ -53,7 +52,6 @@ export const Sharkmap = ({ setMapMode, forcedOpen }: SharkmapProps) => {
       deltaTemp: (sharkMapOptions[0]?.value ?? 50) - 50,
       deltaClouds: (sharkMapOptions[1]?.value ?? 50) - 50,
       deltaOceanDepth: (sharkMapOptions[2]?.value ?? 50) - 50,
-      deltaPhytoplankton: (sharkMapOptions[3]?.value ?? 50) - 50,
     };
     // normalize to a reasonable numeric range; the sliders are 0..100 with 50 as center
     console.debug('[Sharkmap] setting deltaGroup:', dg);

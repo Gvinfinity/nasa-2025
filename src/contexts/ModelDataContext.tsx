@@ -30,7 +30,6 @@ type ModelContextType = {
       deltaTemp?: number;
       deltaClouds?: number;
       deltaOceanDepth?: number;
-      deltaPhytoplankton?: number;
     } | null;
     acceptMock?: boolean;
   }) => Promise<DataPoint[]>;
@@ -53,7 +52,6 @@ export const ModelDataProvider: React.FC<{ children: ReactNode }> = ({
     deltaTemp: 0,
     deltaClouds: 0,
     deltaOceanDepth: 0,
-    deltaPhytoplankton: 0,
   });
 
   // Wrap setter to log updates (helps trace propagation from Sharkmap sliders)

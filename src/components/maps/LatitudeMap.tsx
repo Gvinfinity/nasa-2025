@@ -79,7 +79,6 @@ export default function MapLatitude({
     Temperature: "temperature",
     Clouds: "clouds",
     "Ocean Depth": "ocean depth",
-    Phytoplanktons: "phytoplanktons",
     default: "default",
   };
   const activePaletteKey = VIEW_TO_KEY[activeView] ?? "default";
