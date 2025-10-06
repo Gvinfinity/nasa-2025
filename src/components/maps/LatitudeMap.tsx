@@ -78,12 +78,9 @@ export default function MapLatitude({
     default: "default",
   };
   const activePaletteKey = VIEW_TO_KEY[activeView] ?? "default";
-  const cbKey = `${activePaletteKey}_cb`;
-  const activePalette = (colorblindMode && PALETTES[cbKey]) ? PALETTES[cbKey] : (PALETTES[activePaletteKey] || PALETTES.default);
+  const activePalette = (colorblindMode) ? PALETTES["default_cb"] : (PALETTES[activePaletteKey] || PALETTES.default);
   const getPoints = aggregatePoints();
   const [prevZoom, setPrevZoom] = useState(1);
-
-
 
   const points = useMemo(() => {
     if (!modelData || typeof modelData === "string") return [] as Array<{ position: number[]; weight: number }>;
@@ -672,6 +669,16 @@ export default function MapLatitude({
           console.info("Answer selected:", selected, "correct:", isCorrect);
         }}
       />
+
+      {/* Loading overlay shown while modelData is not yet available */}
+      {modelData === null && (
+        <div className="absolute inset-0 z-[1005] flex items-center justify-center pointer-events-none">
+          <div className="flex flex-col items-center gap-3 bg-black/60 text-white rounded-lg p-4 pointer-events-auto shadow-lg">
+            <div className="w-10 h-10 border-4 border-white border-t-transparent rounded-full animate-spin" />
+            <div className="text-sm">Loading data…</div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
