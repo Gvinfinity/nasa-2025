@@ -321,7 +321,7 @@ export const Sidebar = ({ children }: SidebarProps) => {
     <SidebarContext.Provider value={contextValue}>
       <div className="flex">
         {/* Sidebar */}
-        <aside className="w-72 h-screen bg-gradient-to-b from-blue-900 to-blue-950 text-white flex flex-col items-start p-4 shadow-2xl relative overflow-hidden overflow-y-auto">
+        <aside className="w-72 bg-gradient-to-b from-blue-900 to-blue-950 text-white flex flex-col items-start p-4 shadow-2xl relative overflow-hidden overflow-y-auto">
           <div className="flex items-center justify-center gap-3 h-fit">
             <img
               src="/sharko_new.png" alt="Sharko, the Shark Seer"
@@ -354,7 +354,7 @@ export const Sidebar = ({ children }: SidebarProps) => {
         </aside>
 
         {/* Main content */}
-        <div className="flex-1 bg-black min-h-screen">
+        <div className="flex-1 bg-black min-h-screen overflow-hidden overflow-y-auto">
           <AnimatePresence mode="wait">
             <motion.div
               key={state.currentComponent ? "panel-custom" : "panel-default"}
