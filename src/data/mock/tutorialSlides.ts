@@ -37,8 +37,8 @@ Take a look at our sources in the *NASA Space Apps Challenge website*.`,
     action: () => {
       const halo = createPulseHalo({
         id: "map-legend",
-        x: "50%",
-        y: "5%",
+        // anchor to the map legend element so the halo tracks layout changes
+        target: "#map-legend",
         size: 200,
         color: "rgba(99,102,241,0.9)",
         duration: 1.4,
@@ -59,9 +59,9 @@ Take a look at our sources in the *NASA Space Apps Challenge website*.`,
     action: () => {
       // pulse near the sidebar area where the SharkMap controls live
       const halo = createPulseHalo({
-        id: "sharkmap-accessibility-toggle",
-        x: "3%",
-        y: "20%",
+        id: "sidebar-sharkmap-button",
+        // anchor to the toggle element in the Sharkmap controls
+        target: "#sidebar-sharkmap-button",
         size: 140,
         color: "rgba(99,102,241,0.9)",
         duration: 1.4,
@@ -95,9 +95,8 @@ Take a look at our sources in the *NASA Space Apps Challenge website*.`,
     action: () => {
       // pulse near the sidebar area where the SharkMap controls live
       const halo = createPulseHalo({
-        id: "sharkmap-accessibility-toggle",
-        x: "5%",
-        y: "20%",
+        id: "accessibility-options-menu",
+        target: "#accesibility-options-menu",
         size: 140,
         color: "rgba(99,102,241,0.9)",
         duration: 1.4,
@@ -115,8 +114,7 @@ Take a look at our sources in the *NASA Space Apps Challenge website*.`,
       // pulse near the sidebar area where the SharkMap controls live
       const halo = createPulseHalo({
         id: "sharkmap-accessibility-toggle",
-        x: "5%",
-        y: "40%",
+        target: "#sharkmap-accessibility-toggle",
         size: 140,
         color: "rgba(99,102,241,0.9)",
         duration: 1.4,

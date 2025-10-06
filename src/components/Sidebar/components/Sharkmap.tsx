@@ -99,7 +99,7 @@ export const Sharkmap = ({ setMapMode, forcedOpen }: SharkmapProps) => {
             className="ml-4 mt-3 grid grid-cols-2 gap-2 overflow-hidden"
           >
             {/* Map Toggles here: Mode, Enable, Colorblind */}
-            <div className="col-span-2 mb-4">
+            <div className="col-span-2 mb-4" id="accessibility-options-menu">
               <div className="flex flex-col gap-3">
                 <div className="flex items-center justify-between">
                   <ModeToggleButton onModeChange={handleModeChange} />
