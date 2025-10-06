@@ -89,7 +89,14 @@ export default function MapLatitude({
     if (!modelData || typeof modelData === "string") return [] as Array<{ position: number[]; weight: number }>;
 
     const pointsView1 = prevZoom <= 3 ? getPoints(prevZoom|| 1) : modelData;
-    const visualizationPoints = (modelData && prevZoom <= 3) ? aggregateWeights(pointsView1, modelData) : modelData;
+    // Ensure pointsView1 is [number, number][]
+    const pointsView1Coords: [number, number][] =
+      Array.isArray(pointsView1) && pointsView1.length > 0 && Array.isArray(pointsView1[0])
+        ? (pointsView1 as any[]).map((d) => [d[0], d[1]]) as [number, number][]
+        : [];
+    const visualizationPoints = (modelData && prevZoom <= 3)
+      ? aggregateWeights(pointsView1Coords, modelData)
+      : modelData;
 
     return (visualizationPoints as DataPoint[]).map((d) => ({ position: [d[0], d[1]], weight: d[2] }));
   }, [modelData, prevZoom]);
