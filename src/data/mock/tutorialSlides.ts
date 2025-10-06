@@ -4,28 +4,29 @@ import { createPulseHalo } from "../../components/ui/pulseHalo";
 export const TUTORIAL_SLIDES: Slide[] = [
   {
     title: "Welcome",
-    text: "We designed this tool to predict where it is most (and least) likely for sharks to be given a list of variables, including temperature, ocean depth and cloud coverage.",
+    text: "We designed this tool to predict where it is most (and least) likely for sharks to be given a list of variables, including temperature, ocean depth, and cloud coverage.",
     position: "center",
     sidebarTab: null,
   },
   {
     title: "Introduction",
-    text: `Shark Seer uses the XGBoost (eXtreme Gradient Boosting) machine learning algorithm to create a mathematical framework that uses publicly available data to predict the percentage chance of shark presence in regions of the Atlantic Ocean. It was trained on the following variables:
+    text: `Shark Seer uses the XGBoost (eXtreme Gradient Boosting) machine learning algorithm to create a mathematical framework that uses publicly available data to predict the probability of shark presence in regions of the Atlantic Ocean. It was trained on the following variables:
 
 - Location (latitude and longitude)
-- Ocean depth
 - Time
+- Ocean depth
+- Phytoplankton
 - Wave height, period, and direction
-- Pythoplankton presence
 - Temperature
 - Shark sightings
+- Clouds
 
 Take a look at our sources in the *NASA Space Apps Challenge website*.`,
     position: "center",
   },
   {
     title: "Inputs",
-    text: "Our model receives as input a location and outputs a probability of there being sharks in that location at that time and ocean depth.",
+    text: "Our model receives as input a location and its environmental properties and outputs a probability of there being sharks in said location.",
     position: "center-right",
     actionLabel: "Highlight toggle",
   },
@@ -36,8 +37,8 @@ Take a look at our sources in the *NASA Space Apps Challenge website*.`,
     action: () => {
       const halo = createPulseHalo({
         id: "map-legend",
-        // anchor to the map legend element so the halo tracks layout changes
-        target: "#map-legend",
+        x: "50%",
+        y: "5%",
         size: 200,
         color: "rgba(99,102,241,0.9)",
         duration: 1.4,
@@ -51,16 +52,16 @@ Take a look at our sources in the *NASA Space Apps Challenge website*.`,
     position: "center-right",
   },
   {
-    title: "Map Overlays",
-    text: "You can overlay the map with the other variables we trained. Open the shark map tab and try to interact with the temperature slider!",
+    title: "Variable sliders",
+    text: "You can change the values of some variables across the entire map using the sliders on the left. For example, sliding the temperature variable to 150% sets the temperature on all regions of the map to 1.5x their original values and runs the model again.",
     position: "center-right",
     sidebarTab: "sharkmap",
     action: () => {
       // pulse near the sidebar area where the SharkMap controls live
       const halo = createPulseHalo({
-        id: "sidebar-sharkmap-button",
-        // anchor to the toggle element in the Sharkmap controls
-        target: "#sidebar-sharkmap-button",
+        id: "sharkmap-accessibility-toggle",
+        x: "3%",
+        y: "20%",
         size: 140,
         color: "rgba(99,102,241,0.9)",
         duration: 1.4,
@@ -69,32 +70,34 @@ Take a look at our sources in the *NASA Space Apps Challenge website*.`,
       return halo;
     },
   },
-  {
-    title: "Map Overlays",
-    text: "Notice how the map changes. This is due to the data from the overlay, whose scale is shown in the header.",
-    position: "center-right",
-    action: () => {
-      // pulse near the sidebar area where the SharkMap controls live
-      const halo = createPulseHalo({
-        id: "map-legend",
-        target: "#map-legend",
-        size: 140,
-        color: "rgba(99,102,241,0.9)",
-        duration: 1.4,
-      });
-      // return the halo so the Slides component can destroy it when the slide is skipped
-      return halo;
-    },
-  },
+  // {
+  //   title: "Map Overlays",
+  //   text: "Notice how the map changes. This is due to the data from the overlay, whose scale is shown in the header.",
+  //   position: "center-right",
+  //   action: () => {
+  //     // pulse near the sidebar area where the SharkMap controls live
+  //     const halo = createPulseHalo({
+  //       id: "sharkmap-accessibility-toggle",
+  //       x: "50%",
+  //       y: "8%",
+  //       size: 140,
+  //       color: "rgba(99,102,241,0.9)",
+  //       duration: 1.4,
+  //     });
+  //     // return the halo so the Slides component can destroy it when the slide is skipped
+  //     return halo;
+  //   },
+  // },
   {
     title: "Options Menu",
-    text: "In the Shark Map section, you can also enable educational mode or colorblind mode. You can also restart this tutorial later if you need to.",
+    text: "In the Shark Map section, you can also enable Quiz mode (for extra content on the map) or Colorblind mode. You can also restart this tutorial later if you need to.",
     position: "center-right",
     action: () => {
       // pulse near the sidebar area where the SharkMap controls live
       const halo = createPulseHalo({
         id: "sharkmap-accessibility-toggle",
-        target: "#sharkmap-accessibility-toggle",
+        x: "5%",
+        y: "20%",
         size: 140,
         color: "rgba(99,102,241,0.9)",
         duration: 1.4,
@@ -105,35 +108,21 @@ Take a look at our sources in the *NASA Space Apps Challenge website*.`,
   },
   {
     title: "Our Tool",
-    text: "This is the “Our tool” menu, with some information regarding our methodology. More information on the NASA Space Apps Challenge website.",
+    text: "These menus have information regarding our methodology. More information on the NASA Space Apps Challenge website.",
     position: "center-right",
     sidebarTab: null,
     action: () => {
       // pulse near the sidebar area where the SharkMap controls live
-      // delay creating the halo so it doesn't flash immediately; allow cleanup if slide skipped
-      let created: { destroy?: () => void } | null = null;
-      const t = setTimeout(() => {
-        try {
-          created = createPulseHalo({
-            id: "our-tool",
-            target: "#our-tool",
-            size: 140,
-            color: "rgba(99,102,241,0.9)",
-            duration: 1.4,
-          });
-        } catch {
-          // ignore failures to create the halo
-        }
-      }, 1000);
-
-      return {
-        destroy() {
-          try {
-            clearTimeout(t as unknown as number);
-            if (created && typeof created.destroy === 'function') created.destroy();
-          } catch { /* ignore */ }
-        }
-      };
+      const halo = createPulseHalo({
+        id: "sharkmap-accessibility-toggle",
+        x: "5%",
+        y: "40%",
+        size: 140,
+        color: "rgba(99,102,241,0.9)",
+        duration: 1.4,
+      });
+      // return the halo so the Slides component can destroy it when the slide is skipped
+      return halo;
     },
   },
   {
