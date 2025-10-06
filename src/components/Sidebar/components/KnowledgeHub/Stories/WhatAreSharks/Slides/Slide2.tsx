@@ -66,7 +66,7 @@ const Slide2: React.FC = () => {
                   ]}
                 >
                   Elasmobranchii
-                </Tooltip>
+                </Tooltip>{" "}
                 (which includes sharks, skates, rays, and sawfishes) and{" "}
                 <Tooltip
                   title="Holocephali"

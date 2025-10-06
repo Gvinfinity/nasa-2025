@@ -39,7 +39,7 @@ const Slide3: React.FC = () => {
         </motion.p>
       </div>
       {/* Navigation buttons */}
-      <div className="bottom-8 left-0 right-0 flex w-full justify-end px-8 z-20 mb-8">
+      <div className="bottom-8 left-0 right-0 flex w-full justify-between px-8 z-20 mb-8">
         <Button onClick={prevSlide}>Back</Button>
         <Button onClick={() => setCustomComponent(<StoriesMenu />)}>
           Return to Menu
