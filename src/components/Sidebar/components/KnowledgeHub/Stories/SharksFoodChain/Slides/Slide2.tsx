@@ -6,7 +6,7 @@ import TextWithSpeech from "../../../../TextWithSpeech";
 import { useSliderProvider } from "../../../../../../../contexts/SliderContext";
 
 const Slide2: React.FC = () => {
-  const { prevSlide } = useSliderProvider();
+  const { nextSlide } = useSliderProvider();
 
   return (
     <motion.div
@@ -41,7 +41,7 @@ const Slide2: React.FC = () => {
       </div>
       {/* Navigation buttons */}
       <div className="bottom-8 left-0 right-0 flex w-full justify-end px-8 z-20 mb-8">
-        <Button onClick={prevSlide}>Back</Button>
+        <Button onClick={nextSlide}>Next</Button>
       </div>
     </motion.div>
   );
