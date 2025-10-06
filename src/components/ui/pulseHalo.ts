@@ -1,16 +1,19 @@
 type PulseOptions = {
   id?: string;
-  x: number | string; // px or percentage string like '50%'
-  y: number | string;
+  x?: number | string; // px or percentage string like '50%'
+  y?: number | string;
   size?: number; // diameter in px
   color?: string; // css color
   duration?: number; // seconds
   repeat?: number | 'infinite';
+  // optional target element (selector or element); if provided the halo will be anchored to the
+  // element's center and will reposition on resize/scroll so it stays on the element.
+  target?: string | HTMLElement;
 };
 
 // track existing halos by id so repeated calls don't create duplicates
 // store container, a refCount and createdAt so multiple callers can request the same halo
-const _HALO_REGISTRY = new Map<string, { container: HTMLElement; refCount: number; createdAt: number }>();
+const _HALO_REGISTRY = new Map<string, { container: HTMLElement; refCount: number; createdAt: number; _cleanup?: () => void }>();
 
 let _PULSE_HALO_DEBUG = false;
 export function setPulseHaloDebug(enabled: boolean) {
@@ -19,7 +22,6 @@ export function setPulseHaloDebug(enabled: boolean) {
 
 export function createPulseHalo(options: PulseOptions) {
   const { id, x, y, size = 120, color = 'rgba(59,130,246,0.9)', duration = 1.6, repeat = 'infinite' } = options;
-
   const key = id ?? `${x}:${y}:${size}:${color}`;
   if (_HALO_REGISTRY.has(key)) {
     // increment refCount and return a destroy that decrements it
@@ -59,8 +61,79 @@ export function createPulseHalo(options: PulseOptions) {
 
   const container = document.createElement('div');
   container.style.position = 'fixed';
-  container.style.left = typeof x === 'number' ? `${x}px` : x;
-  container.style.top = typeof y === 'number' ? `${y}px` : y;
+
+  // Helper to set left/top in pixels
+  const setPositionPx = (pxX: number, pxY: number) => {
+    container.style.left = `${pxX}px`;
+    container.style.top = `${pxY}px`;
+  };
+
+  // If a target element is provided, anchor the halo to its center and add a listener to
+  // reposition on resize/scroll so the halo remains attached to the element across layouts.
+  let cleanupListener: (() => void) | undefined;
+  if (options.target) {
+    try {
+      const el = typeof options.target === 'string' ? document.querySelector(options.target) : options.target;
+      if (el instanceof HTMLElement) {
+        const update = () => {
+          const r = el.getBoundingClientRect();
+          const cx = Math.round(r.left + r.width / 2);
+          const cy = Math.round(r.top + r.height / 2);
+          setPositionPx(cx, cy);
+        };
+        update();
+        // reposition on resize and scroll
+        window.addEventListener('resize', update);
+        window.addEventListener('scroll', update, { passive: true });
+        // also observe element resize if supported
+        let ro: ResizeObserver | null = null;
+        const RO = (window as unknown) as { ResizeObserver?: typeof ResizeObserver };
+        if (RO.ResizeObserver) {
+          ro = new RO.ResizeObserver(update);
+          try { if (ro && typeof ro.observe === 'function') ro.observe(el); } catch { /* ignore */ }
+        }
+        cleanupListener = () => {
+          window.removeEventListener('resize', update);
+          window.removeEventListener('scroll', update);
+          if (ro) {
+            try { ro.disconnect(); } catch { /* ignore */ }
+            ro = null;
+          }
+        };
+      }
+    } catch {
+      // fallback to original x/y handling below
+    }
+  }
+
+  // If no target-based positioning was applied, handle percentage strings by converting
+  // them to absolute pixel coordinates at creation time so the halo doesn't shift with CSS % behavior.
+  if (!cleanupListener) {
+    const resolveCoord = (v: number | string, isX: boolean) => {
+      if (typeof v === 'number') return v;
+      if (typeof v === 'string') {
+        const s = v.trim();
+        if (s.endsWith('%')) {
+          const pct = parseFloat(s.slice(0, -1));
+          if (!Number.isNaN(pct)) {
+            return Math.round((pct / 100) * (isX ? window.innerWidth : window.innerHeight));
+          }
+        }
+        // attempt to parse px value
+        if (s.endsWith('px')) {
+          const n = parseFloat(s.slice(0, -2));
+          if (!Number.isNaN(n)) return n;
+        }
+      }
+      // fallback: try coercion
+      const coerced = Number((v as unknown) as number);
+      return Number.isNaN(coerced) ? 0 : coerced;
+    };
+
+    const resolvedX = resolveCoord(x ?? '50%', true);
+    const resolvedY = resolveCoord(y ?? '50%', false);
+    setPositionPx(resolvedX, resolvedY);
+  }
   container.style.width = `${size}px`;
   container.style.height = `${size}px`;
   container.style.pointerEvents = 'none';
@@ -120,7 +193,7 @@ export function createPulseHalo(options: PulseOptions) {
   document.body.appendChild(container);
   const now = Date.now();
   // register with refCount 1
-  _HALO_REGISTRY.set(key, { container, refCount: 1, createdAt: now });
+  _HALO_REGISTRY.set(key, { container, refCount: 1, createdAt: now, _cleanup: cleanupListener });
   if (_PULSE_HALO_DEBUG) {
     console.debug('[pulseHalo] create', { key, x, y, size, color, duration, now, stack: (new Error()).stack });
   }
@@ -138,6 +211,8 @@ export function createPulseHalo(options: PulseOptions) {
           try {
             if (container.parentElement) container.parentElement.removeChild(container);
           } catch { /* ignore */ }
+          // call any cleanup listener (remove resize/scroll handlers)
+          try { entry._cleanup?.(); } catch { /* ignore */ }
           _HALO_REGISTRY.delete(key);
           if (_PULSE_HALO_DEBUG) console.debug('[pulseHalo] removed', { key });
         }

@@ -82,7 +82,7 @@ export function Slides({ slides, onClose }: SlidesProps) {
             // ensure the panel still receives pointer events; allow scrolling so footer stays visible
             style={{ maxHeight: '70vh', overflow: 'auto', pointerEvents: 'auto' } as React.CSSProperties}
           >
-            <div className="flex items-start justify-between gap-4">
+            <div className="flex items-start justify-between overflow-hidden gap-4">
               <div className="flex-1 min-w-0">
                 <h3 className="text-lg font-semibold">{cur.title}</h3>
                 <div className="mt-2 text-md opacity-90 max-h-[40vh] sm:max-h-[55vh] overflow-auto">

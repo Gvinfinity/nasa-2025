@@ -331,13 +331,14 @@ export const Sidebar = ({ children }: SidebarProps) => {
             </h1>
           </div>
           <nav className="flex flex-col gap-3 w-full mt-6">
-            <a onClick={() => navigateTo("sharkmap")}>
+            <a id="sidebar-sharkmap-button" onClick={() => navigateTo("sharkmap")}>
               <Sharkmap
                 setMapMode={setMapModeCallback}
                 forcedOpen={state.currentItem === "sharkmap"}
               />
             </a>
             <KnowledgeHub />
+
             <PredictSharkMovement />
             <Tutorial />
             <MeetTheTeam />

@@ -42,7 +42,7 @@ function MapGradient() {
 
 export default function MapBar() {
   return (
-    <div className="w-full absolute top-0 bg-white/30 backdrop-blur-md border border-white/20 text-white h-14 z-[1001] shadow-sm">
+    <div id="map-legend" className="w-full absolute top-0 bg-white/30 backdrop-blur-md border border-white/20 text-white h-14 z-[1001] shadow-sm">
       <div className="grid grid-cols-[minmax(200px,1fr)_minmax(220px,300px)_auto] items-center gap-2 px-4 h-full">
         <div className="flex items-center">
           <MapGradient />
