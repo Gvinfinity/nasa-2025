@@ -278,7 +278,7 @@ const getLatLonCoords = () => {
 // }
 
 export const aggregatePoints = () => {
-  const freeZone = [
+  const freeZone: Array<[number, number]> = [
     [-35.722043, -76.632797],
     [-22.045760, -73.037875],
     [-11.853743, -79.720994],
@@ -314,7 +314,7 @@ export const aggregatePoints = () => {
     [36.584043, 25.935153],
   ];
   
-  const landZone = [
+  const landZone: Array<[number, number]> = [
     [-16.327265, -55.411455],
     [-37.961141, -66.277328],
     [40.180892, -68.517595],
@@ -329,8 +329,8 @@ export const aggregatePoints = () => {
     [35.831120, -94.428648],
   ];
   
-  const freeZoneLonLat = freeZone.map((zone) => [zone[1], zone[0]]);
-  const landZoneLonLat = landZone.map((zone) => [zone[1], zone[0]]);
+  const freeZoneLonLat: Array<[number, number]> = freeZone.map((zone) => [zone[1], zone[0]] as [number, number]);
+  const landZoneLonLat: Array<[number, number]> = landZone.map((zone) => [zone[1], zone[0]] as [number, number]);
   
   const max_points = {
     2: 100,
@@ -338,24 +338,28 @@ export const aggregatePoints = () => {
   };
   
   // Helper function to calculate distance between two points
-  const distance = (p1, p2) => {
+    const distance = (p1: [number, number], p2: [number, number]): number => {
     const dx = p1[0] - p2[0];
     const dy = p1[1] - p2[1];
     return Math.sqrt(dx * dx + dy * dy);
   };
   
   // Helper function to check if a point is too close to land
-  const isTooCloseToLand = (point, minDistance = 3) => {
+    const isTooCloseToLand = (point: [number, number], minDistance = 3): boolean => {
     return landZoneLonLat.some(landPoint => distance(point, landPoint) < minDistance);
   };
   
   // Helper function to check if a point is too close to existing points
-  const isTooCloseToExisting = (point, existingPoints, minDistance = 2) => {
+    const isTooCloseToExisting = (
+      point: [number, number],
+      existingPoints: Array<[number, number]>,
+      minDistance = 2,
+    ): boolean => {
     return existingPoints.some(existing => distance(point, existing) < minDistance);
   };
   
   // Interpolate between two points
-  const interpolate = (p1, p2, t) => {
+    const interpolate = (p1: [number, number], p2: [number, number], t: number): [number, number] => {
     return [
       p1[0] + (p2[0] - p1[0]) * t,
       p1[1] + (p2[1] - p1[1]) * t
@@ -368,13 +372,13 @@ export const aggregatePoints = () => {
       return freeZoneLonLat;
     }
     
-    // @ts-ignore
-    const targetCount = max_points[view] || max_points[5];
-    const result = [...freeZoneLonLat];
+  // @ts-ignore -- best-effort target counts per zoom level
+  const targetCount = (max_points as any)[view] || (max_points as any)[5];
+  const result: Array<[number, number]> = [...freeZoneLonLat];
     const attempts = targetCount * 10; // Max attempts to avoid infinite loops
     
     for (let i = 0; i < attempts && result.length < targetCount; i++) {
-      let newPoint;
+      let newPoint: [number, number] | undefined;
       
       // Strategy 1: Interpolate between two random existing points (70% of time)
       if (Math.random() < 0.7) {
@@ -382,7 +386,7 @@ export const aggregatePoints = () => {
         const idx2 = Math.floor(Math.random() * result.length);
         if (idx1 !== idx2) {
           const t = 0.3 + Math.random() * 0.4; // Interpolate between 30% and 70%
-          newPoint = interpolate(result[idx1], result[idx2], t);
+    newPoint = interpolate(result[idx1], result[idx2], t);
         } else {
           continue;
         }
@@ -395,16 +399,19 @@ export const aggregatePoints = () => {
         const angle = Math.random() * 2 * Math.PI;
         newPoint = [
           basePoint[0] + offset * Math.cos(angle),
-          basePoint[1] + offset * Math.sin(angle)
-        ];
+          basePoint[1] + offset * Math.sin(angle),
+        ] as [number, number];
       }
       
       // Validate the new point
       const minLandDist = view >= 4 ? 5 : 3; // Stricter for higher zoom
       const minPointDist = view >= 4 ? 1.5 : 2;
       
-      if (!isTooCloseToLand(newPoint, minLandDist) && 
-          !isTooCloseToExisting(newPoint, result, minPointDist)) {
+      if (
+        newPoint &&
+        !isTooCloseToLand(newPoint, minLandDist) &&
+        !isTooCloseToExisting(newPoint, result, minPointDist)
+      ) {
         result.push(newPoint);
       }
     }
@@ -413,7 +420,7 @@ export const aggregatePoints = () => {
   };
   
   // Return a function that can be called with different view levels
-  return (view) => {
+    return (view: number): Array<[number, number]> => {
     if (view < 2) {
       return freeZoneLonLat;
     }
@@ -421,14 +428,18 @@ export const aggregatePoints = () => {
   };
 };
 
-export const aggregateWeights = (pointsView: any[], pointsRaw:any[], searchRadius = 10) => {
-  const distance = (p1, p2) => {
+export const aggregateWeights = (
+  pointsView: Array<[number, number]>,
+  pointsRaw: Array<[number, number, number, number]>,
+  searchRadius = 10,
+): Array<[number, number, number, number]> => {
+  const distance = (p1: [number, number], p2: [number, number]): number => {
     const dx = p1[0] - p2[0];
     const dy = p1[1] - p2[1];
     return Math.sqrt(dx * dx + dy * dy);
   };
-  
-  const result = [];
+
+  const result: Array<[number, number, number, number]> = [];
 
 
   // For each point in pointsView
@@ -437,8 +448,8 @@ export const aggregateWeights = (pointsView: any[], pointsRaw:any[], searchRadiu
     let maxWeight = 0;
     let closestDistance = Infinity;
     
-    // Find all pointsRaw within searchRadius and get their weights
-    const nearbyWeights = [];
+  // Find all pointsRaw within searchRadius and get their weights
+  const nearbyWeights: Array<{ weight: number; distance: number }> = [];
     
     for (let j = 0; j < pointsRaw.length; j++) {
       const rawPoint = pointsRaw[j];

@@ -273,7 +273,7 @@ const Intro2: React.FC = () => {
       </motion.h1>
 
       <motion.div
-        className="text-[clamp(0.75rem,3vw,1rem)] sm:text-[clamp(0.875rem,3.5vw,1.125rem)] md:text-[clamp(1rem,4vw,1.25rem)] lg:text-[clamp(1.125rem,4.5vw,1.5rem)] text-blue-100/90 mb-8 sm:mb-10 leading-relaxed space-y-3 sm:space-y-4"
+        className="text-xl sm:text-xl md:text-xl lg:text-xl text-blue-100/90 mb-8 sm:mb-10 leading-relaxed space-y-3 sm:space-y-4"
         variants={containerVariants}
       >
         <motion.p variants={itemVariants}>
@@ -311,7 +311,7 @@ const Intro2: React.FC = () => {
         variants={containerVariants}
       >
         <motion.button
-          className="w-full sm:w-auto px-[clamp(1rem,3vw,2rem)] py-[clamp(0.5rem,2vw,1rem)] text-[clamp(0.875rem,3.5vw,1.125rem)] font-semibold rounded-full bg-gradient-to-r from-blue-500 to-cyan-400 text-white hover:scale-105 transition-all"
+          className="w-full sm:w-auto px-[clamp(1rem,3vw,2rem)] py-[clamp(0.5rem,2vw,1rem)] text-xl font-semibold rounded-full bg-gradient-to-r from-blue-500 to-cyan-400 text-white hover:scale-105 transition-all"
           variants={itemVariants}
           whileHover={{
             scale: 1.05,
@@ -324,7 +324,7 @@ const Intro2: React.FC = () => {
           Start Intro
         </motion.button>
         <motion.button
-          className="w-full sm:w-auto px-[clamp(1rem,3vw,2rem)] py-[clamp(0.5rem,2vw,1rem)] text-[clamp(0.875rem,3.5vw,1.125rem)] font-semibold rounded-full border border-blue-400 text-blue-100 hover:bg-blue-500/20 hover:scale-105 transition-all"
+          className="w-full sm:w-auto px-[clamp(1rem,3vw,2rem)] py-[clamp(0.5rem,2vw,1rem)] text-xl font-semibold rounded-full border border-blue-400 text-blue-100 hover:bg-blue-500/20 hover:scale-105 transition-all"
           variants={itemVariants}
           whileHover={{
             scale: 1.05,
@@ -376,7 +376,7 @@ const Intro3: React.FC = () => {
       </motion.div>
 
       <motion.div
-        className="text-[clamp(0.75rem,3vw,1rem)] sm:text-[clamp(0.875rem,3.5vw,1.125rem)] md:text-[clamp(1rem,4vw,1.25rem)] lg:text-[clamp(1.125rem,4.5vw,1.5rem)] text-blue-100/90 mb-[clamp(1rem,3vw,2.5rem)] leading-relaxed"
+        className="text-xl sm:text-xl md:text-xl lg:text-xl text-blue-100/90 mb-[clamp(1rem,3vw,2.5rem)] leading-relaxed"
         variants={containerVariants}
       >
         <motion.p variants={itemVariants}>
@@ -452,7 +452,7 @@ const Intro3: React.FC = () => {
         variants={containerVariants}
       >
         <motion.button
-          className="w-full sm:w-auto px-[clamp(1rem,3vw,2rem)] py-[clamp(0.5rem,2vw,1rem)] text-[clamp(0.875rem,3.5vw,1.125rem)] font-semibold rounded-full bg-gradient-to-r from-blue-500 to-cyan-400 text-white hover:scale-105 transition-all"
+          className="w-full sm:w-auto px-[clamp(1rem,3vw,2rem)] py-[clamp(0.5rem,2vw,1rem)] text-xl font-semibold rounded-full bg-gradient-to-r from-blue-500 to-cyan-400 text-white hover:scale-105 transition-all"
           variants={itemVariants}
           whileHover={{
             scale: 1.05,
@@ -465,7 +465,7 @@ const Intro3: React.FC = () => {
           Next
         </motion.button>
         <motion.button
-          className="w-full sm:w-auto px-[clamp(1rem,3vw,2rem)] py-[clamp(0.5rem,2vw,1rem)] text-[clamp(0.875rem,3.5vw,1.125rem)] font-semibold rounded-full border border-blue-400 text-blue-100 hover:bg-blue-500/20 hover:scale-105 transition-all"
+          className="w-full sm:w-auto px-[clamp(1rem,3vw,2rem)] py-[clamp(0.5rem,2vw,1rem)] text-xl font-semibold rounded-full border border-blue-400 text-blue-100 hover:bg-blue-500/20 hover:scale-105 transition-all"
           variants={itemVariants}
           whileHover={{
             scale: 1.05,
@@ -516,7 +516,7 @@ const Intro5: React.FC = () => {
       </motion.div>
 
       <motion.div
-        className="text-[clamp(0.75rem,3vw,1rem)] sm:text-[clamp(0.875rem,3.5vw,1.125rem)] md:text-[clamp(1rem,4vw,1.25rem)] lg:text-[clamp(1.125rem,4.5vw,1.5rem)] text-blue-100/90 mb-[clamp(1.5rem,4vw,2.5rem)] leading-relaxed"
+        className="text-xl sm:text-xl md:text-xl lg:text-xl text-blue-100/90 mb-[clamp(1.5rem,4vw,2.5rem)] leading-relaxed"
         variants={itemVariants}
       >
         <p>
@@ -553,7 +553,7 @@ const Intro5: React.FC = () => {
         variants={containerVariants}
       >
         <motion.button
-          className="w-full sm:w-auto px-[clamp(1rem,3vw,2rem)] py-[clamp(0.5rem,2vw,1rem)] text-[clamp(0.875rem,3.5vw,1.125rem)] font-semibold rounded-full bg-gradient-to-r from-blue-500 to-cyan-400 text-white hover:scale-105 transition-all"
+          className="w-full sm:w-auto px-[clamp(1rem,3vw,2rem)] py-[clamp(0.5rem,2vw,1rem)] text-xl font-semibold rounded-full bg-gradient-to-r from-blue-500 to-cyan-400 text-white hover:scale-105 transition-all"
           variants={itemVariants}
           whileHover={{
             scale: 1.05,
@@ -566,7 +566,7 @@ const Intro5: React.FC = () => {
           Next
         </motion.button>
         <motion.button
-          className="w-full sm:w-auto px-[clamp(1rem,3vw,2rem)] py-[clamp(0.5rem,2vw,1rem)] text-[clamp(0.875rem,3.5vw,1.125rem)] font-semibold rounded-full border border-blue-400 text-blue-100 hover:bg-blue-500/20 hover:scale-105 transition-all"
+          className="w-full sm:w-auto px-[clamp(1rem,3vw,2rem)] py-[clamp(0.5rem,2vw,1rem)] text-xl font-semibold rounded-full border border-blue-400 text-blue-100 hover:bg-blue-500/20 hover:scale-105 transition-all"
           variants={itemVariants}
           whileHover={{
             scale: 1.05,

@@ -51,9 +51,6 @@ interface LatitudeMapProps {
 
 export default function MapLatitude({
   modelData: _data = DATA_URL,
-  intensity = 1,
-  threshold = 0.03,
-  radiusPixels = 30,
   mapStyle = MAP_STYLE,
   quizData = mockQuizPoints,
   mapMode: mapModeProp,
