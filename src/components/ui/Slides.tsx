@@ -78,11 +78,11 @@ export function Slides({ slides, onClose }: SlidesProps) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -8, scale: 0.995 }}
             transition={{ duration: 0.28, ease: 'easeOut' }}
-            className={`max-w-full sm:max-w-md w-full bg-white/5 backdrop-blur-md border border-white/10 rounded-lg p-4 text-white shadow-xl`}
+            className={`max-w-full sm:max-w-md w-full bg-white/5 backdrop-blur-md border border-white/10 rounded-lg p-4 text-white shadow-xl h-fit`}
             // ensure the panel still receives pointer events; allow scrolling so footer stays visible
-            style={{ maxHeight: '70vh', overflow: 'auto', pointerEvents: 'auto' } as React.CSSProperties}
+            style={{ maxHeight: '85vh', overflow: 'auto', pointerEvents: 'auto' } as React.CSSProperties}
           >
-            <div className="flex items-start justify-between overflow-hidden gap-4">
+            <div className="flex items-start justify-between h-fit gap-4">
               <div className="flex-1 min-w-0">
                 <h3 className="text-lg font-semibold">{cur.title}</h3>
                 <div className="mt-2 text-md opacity-90 max-h-[40vh] sm:max-h-[55vh] overflow-auto">
