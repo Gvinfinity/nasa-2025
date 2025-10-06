@@ -12,9 +12,10 @@ import MapLatitude from "../maps/LatitudeMap";
 import { PredictSharkMovements } from "../../pages/PredictSharkMovement/PredictSharkMovementPage";
 import { ModelInfo } from "../../pages/PredictSharkMovement/components/ModelInfo";
 import { MeetTheTeam } from "./components/MeetTheTeam";
+import MeetTheTeamPage from "../../pages/MeetTheTeamPage";
 
 interface SidebarProps {
-  children?: React.ReactNode;
+  children?: ReMeetTheTeamact.ReactNode;
 }
 
 export type SidebarItemKey =
@@ -146,7 +147,7 @@ export const Sidebar = ({ children }: SidebarProps) => {
         case "tutorial":
           return <Tutorial />;
         case "meet-the-team":
-          return <MeetTheTeam />;
+          return <MeetTheTeamPage />;
         case "what-are-sharks-story":
           return <WhatAreSharks />;
         case "sharks-importance-story":
@@ -325,7 +326,7 @@ export const Sidebar = ({ children }: SidebarProps) => {
     <SidebarContext.Provider value={contextValue}>
       <div className="flex">
         {/* Sidebar */}
-        <aside className="w-72 h-screen bg-gradient-to-b from-blue-900 to-blue-950 text-white flex flex-col items-start p-4 shadow-2xl relative overflow-hidden overflow-y-auto">
+        <aside className="w-72 bg-gradient-to-b from-blue-900 to-blue-950 text-white flex flex-col items-start p-4 shadow-2xl relative overflow-hidden overflow-y-auto">
           <div className="flex items-center justify-center gap-3 h-fit">
             <img
               src="/sharko_new.png" alt="Sharko, the Shark Seer"
@@ -358,11 +359,11 @@ export const Sidebar = ({ children }: SidebarProps) => {
         </aside>
 
         {/* Main content */}
-        <div className="flex-1 bg-black min-h-screen">
+        <div className="flex-1 bg-black min-h-screen overflow-hidden overflow-y-auto">
           <AnimatePresence mode="wait">
             <motion.div
               key={state.currentComponent ? "panel-custom" : "panel-default"}
-              className="w-full h-full"
+              className="w-full h-full overflow-hidden"
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
