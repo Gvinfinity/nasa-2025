@@ -82,6 +82,11 @@ export default function MapLatitude({
   const getPoints = aggregatePoints();
   const [prevZoom, setPrevZoom] = useState(1);
 
+  // memoize the resolved palette to avoid recreating arrays on each render
+  const paletteToUse = useMemo(() => {
+    return colorblindMode ? (PALETTES['default_cb'] || PALETTES.default) : activePalette;
+  }, [colorblindMode, activePalette]);
+
   const points = useMemo(() => {
     if (!modelData || typeof modelData === "string") return [] as Array<{ position: number[]; weight: number }>;
 
@@ -227,44 +232,109 @@ export default function MapLatitude({
     }));
   }, []);
 
-  const layers: any[] = [
-    new ScatterplotLayer<any>({
-      id: "heat-dots",
-      data: points,
-      pickable: true,
-      radiusUnits: "pixels",
-      getPosition: (d) => d.position,
-      // Larger, softer halos: radius scaled up and alpha reduced for diffusion
-      getRadius: (d: any) => {
-        const weight = (d && d.weight) || 0;
-        // Reduce base so halos are smaller overall; weight affects size but less aggressively
-        const base = 15 + Math.min(8, Math.max(0, weight / 4));
-        // shrink with zoom: higher zoom -> smaller visual radius
-        const z = (viewState && (viewState.zoom as number)) || 1;
-        const zoomScale = Math.max(0.35, 1 / (Math.pow(2, Math.max(0, z - 3.5))));
-        return Math.round(base * zoomScale);
-      },
-      radiusMinPixels: 2,
-      getFillColor: (d) => {
-        // Normalize weight to [0..1]. We assume weights are roughly in 0..10
-        // range; clamp to be defensive. Lower weights produce lower alpha.
-        const t = Math.max(0, Math.min(1, (d.weight || 0) / 10));
-        const [r, g, b] = colorForValue(activePalette, t);
-        // Alpha: range from ~30 (low weight) up to ~220 (high weight)
-        const alpha = Math.round(30 + t * 190);
-        return [r, g, b, alpha];
-      },
-      opacity: 0.7,
-      onClick: onDotClick,
-      onHover: makeHoverHandler((obj: any, info: any) => {
-        const lon =
-          (obj.position && obj.position[0]) ?? info?.coordinate?.[0] ?? NaN;
-        const lat =
-          (obj.position && obj.position[1]) ?? info?.coordinate?.[1] ?? NaN;
-        return { weight: obj.weight, lon, lat };
-      }),
-    }),
-  ];
+  const layers: any[] = useMemo(() => {
+    const out: any[] = [];
+
+    // heat dots
+    out.push(
+      new ScatterplotLayer<any>({
+        id: "heat-dots",
+        data: points,
+        pickable: true,
+        radiusUnits: "pixels",
+        getPosition: (d) => d.position,
+        getRadius: (d: any) => {
+          const weight = (d && d.weight) || 0;
+          const base = 3 + Math.min(8, Math.max(0, weight / 4));
+          const z = (viewState && (viewState.zoom as number)) || 1;
+          const zoomScale = Math.max(0.35, 1 / (Math.pow(2, Math.max(0, z - 3.5))));
+          return Math.round(base * zoomScale);
+        },
+        radiusMinPixels: 2,
+        getFillColor: (d) => {
+          const t = Math.max(0, Math.min(1, (d.weight || 0) / 10));
+          const [r, g, b] = colorForValue(paletteToUse, t);
+          const alpha = Math.round(30 + t * 190);
+          return [r, g, b, alpha];
+        },
+        updateTriggers: { getFillColor: [paletteToUse] },
+        opacity: 0.7,
+        onClick: onDotClick,
+        onHover: makeHoverHandler((obj: any, info: any) => {
+          const lon = (obj.position && obj.position[0]) ?? info?.coordinate?.[0] ?? NaN;
+          const lat = (obj.position && obj.position[1]) ?? info?.coordinate?.[1] ?? NaN;
+          return { weight: obj.weight, lon, lat };
+        }),
+      })
+    );
+
+    // quiz layers (student mode)
+    if (effectiveMapMode === "student") {
+      const quizPointsData = (typeof quizData === "string" ? [] : (quizData as QuizPoint[])).map((q) => ({ position: [q[0], q[1]], question: q[2] }));
+
+      out.push(
+        new ScatterplotLayer<any>({
+          id: "quiz-halo",
+          data: quizPointsData,
+          pickable: true,
+          getPosition: (d: any) => d.position,
+          getRadius: (_d: any) => {
+            const width = (iconMapping?.flag?.width as number) ?? 64;
+            const baseIcon = Math.max(12, Math.floor(width / 1.0));
+            const baseHalo = Math.max(4, Math.floor(baseIcon * 0.25));
+            const radius = Math.round(baseHalo * (1 + pulse * 0.08));
+            return radius;
+          },
+          radiusUnits: "pixels",
+          getFillColor: () => [34, 197, 94, 40],
+          opacity: 1,
+          onClick: (info: any) => {
+            const obj = info?.object;
+            if (!obj) return;
+            const lon = info.coordinate?.[0] ?? obj.position?.[0] ?? NaN;
+            const lat = info.coordinate?.[1] ?? obj.position?.[1] ?? NaN;
+            setViewState((prev) => ({ ...prev, longitude: lon, latitude: lat, zoom: Math.max((prev.zoom as number) ?? 1, 6), transitionDuration: 500, transitionInterpolator: new FlyToInterpolator() }));
+            const q = obj.question;
+            setActiveQuestion({ questionText: q.question, options: q.options, answer: q.answer, image: q.image });
+            setQuizDialogOpen(true);
+          },
+          onHover: makeHoverHandlerSilent(),
+        })
+      );
+
+      out.push(
+        new IconLayer<any>({
+          id: "quiz-flags",
+          data: quizPointsData,
+          pickable: true,
+          iconAtlas: (iconImage as any) || (flagStudentIcon as any),
+          sizeUnits: 'pixels',
+          iconMapping: iconMapping || { flag: { x: 0, y: 0, width: 64, height: 64, anchorY: 64, anchorX: 32 } },
+          getIcon: (_d: any) => "flag",
+          sizeScale: 1,
+          getSize: (_d: any) => {
+            const width = (iconMapping?.flag?.width as number) ?? 64;
+            const base = Math.max(16, Math.floor(width / 0.75));
+            const mult = 0.85 + pulse * 0.3;
+            return Math.round(base * mult);
+          },
+          getPosition: (d: any) => d.position,
+          onClick: (info: any) => {
+            const obj = info?.object;
+            if (!obj) return;
+            const lon = info.coordinate?.[0] ?? obj.position?.[0] ?? NaN;
+            const lat = info.coordinate?.[1] ?? obj.position?.[1] ?? NaN;
+            setViewState((prev) => ({ ...prev, longitude: lon, latitude: lat, zoom: Math.max((prev.zoom as number) ?? 1, 6), transitionDuration: 500, transitionInterpolator: new FlyToInterpolator() }));
+            const q = obj.question;
+            setActiveQuestion({ questionText: q.question, options: q.options, answer: q.answer });
+            setQuizDialogOpen(true);
+          },
+        })
+      );
+    }
+
+    return out;
+  }, [points, viewState?.zoom, paletteToUse, enabled, aerosolPolygons, iconMapping, iconImage, pulse, effectiveMapMode, quizData, makeHoverHandler, makeHoverHandlerSilent]);
 
   // If enabled, add aerosol PolygonLayer beneath the heatmap
   if (enabled && aerosolPolygons && aerosolPolygons.length) {
