@@ -6,7 +6,6 @@ import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { Map } from "react-map-gl/maplibre";
 import { DeckGL } from "@deck.gl/react";
-import { HeatmapLayer } from "@deck.gl/aggregation-layers";
 import { ScatterplotLayer, IconLayer, PolygonLayer } from "@deck.gl/layers";
 import { useCallback, useMemo, useState, useEffect, useRef } from "react";
 import { colorForValue, PALETTES } from "./utils/palettes";
@@ -16,16 +15,10 @@ import { FlyToInterpolator } from "@deck.gl/core";
 import type { MapViewState } from "@deck.gl/core";
 import MapBar from "./utils/mapBar";
 import { mockQuizPoints, QuizPoint } from "../../data/mock/mockQuestionsData";
-import {
-  mockAerosol,
-  ROWS as A_ROWS,
-  COLS as A_COLS,
-  BBOX as A_BBOX,
-} from "../../data/mock/mockAerosol";
+import { mockAerosol, ROWS as A_ROWS, COLS as A_COLS, BBOX as A_BBOX } from "../../data/mock/mockAerosol";
 import flagStudentIcon from "../../assets/flag_student.png";
-import { motion } from "framer-motion";
 import Dialog from "../ui/dialog";
-import { useModelData } from "../../contexts/ModelDataContext";
+import { useModelData, aggregatePoints, aggregateWeights } from "../../contexts/ModelDataContext";
 
 const DATA_URL =
   "https://raw.githubusercontent.com/visgl/deck.gl-data/master/examples/screen-grid/uber-pickup-locations.json";
@@ -42,12 +35,7 @@ const INITIAL_VIEW_STATE = {
 const MAP_STYLE =
   "https://basemaps.cartocdn.com/gl/dark-matter-nolabels-gl-style/style.json";
 
-type DataPoint = [
-  longitude: number,
-  latitude: number,
-  count: number,
-  depth?: number
-];
+type DataPoint = [longitude: number, latitude: number, count: number, depth?: number];
 
 interface LatitudeMapProps {
   modelData?: Array<DataPoint> | string;
@@ -69,7 +57,7 @@ export default function MapLatitude({
   mapStyle = MAP_STYLE,
   quizData = mockQuizPoints,
   mapMode: mapModeProp,
-  enabled: enabledProp,
+  enabled: enabledProp
 }: LatitudeMapProps) {
   const [viewState, setViewState] = useState<
     MapViewState & { transitionDuration?: number; transitionInterpolator?: any }
@@ -94,22 +82,22 @@ export default function MapLatitude({
   };
   const activePaletteKey = VIEW_TO_KEY[activeView] ?? "default";
   const cbKey = `${activePaletteKey}_cb`;
-  const activePalette =
-    colorblindMode && PALETTES[cbKey]
-      ? PALETTES[cbKey]
-      : PALETTES[activePaletteKey] || PALETTES.default;
+  const activePalette = (colorblindMode && PALETTES[cbKey]) ? PALETTES[cbKey] : (PALETTES[activePaletteKey] || PALETTES.default);
+  const getPoints = aggregatePoints();
+  const [prevZoom, setPrevZoom] = useState(1);
+
+
 
   const points = useMemo(() => {
-    if (!modelData || typeof modelData === "string")
-      return [] as Array<{ position: number[]; weight: number }>;
-    return (modelData as DataPoint[]).map((d) => ({
-      position: [d[0], d[1]],
-      weight: d[2],
-    }));
-  }, [modelData]);
+    if (!modelData || typeof modelData === "string") return [] as Array<{ position: number[]; weight: number }>;
 
-  const { tooltip, makeHoverHandler, makeHoverHandlerSilent, cursor } =
-    useMapTooltip();
+    const pointsView1 = prevZoom <= 3 ? getPoints(prevZoom|| 1) : modelData;
+    const visualizationPoints = (modelData && prevZoom <= 3) ? aggregateWeights(pointsView1, modelData) : modelData;
+
+    return (visualizationPoints as DataPoint[]).map((d) => ({ position: [d[0], d[1]], weight: d[2] }));
+  }, [modelData, prevZoom]);
+
+  const { tooltip, makeHoverHandler, makeHoverHandlerSilent, cursor } = useMapTooltip();
 
   // dialog state for quiz questions
   const [quizDialogOpen, setQuizDialogOpen] = useState(false);
@@ -119,6 +107,16 @@ export default function MapLatitude({
     answer?: string;
     image?: string;
   } | null>(null);
+
+  useEffect(() => {
+    const screenZoom = Math.floor(viewState.zoom);
+    const roundedZoom = (screenZoom > 3 && screenZoom < 6) ? 3 : screenZoom;
+    console.log('viewState.zoom', screenZoom, viewState.zoom, prevZoom);
+    
+    if (roundedZoom != prevZoom) {
+      setPrevZoom(roundedZoom);
+    }
+  }, [viewState.zoom]);
 
   // dynamically build iconMapping from the imported flag image so IconLayer
   // will render correctly regardless of the image's actual pixel size.
@@ -229,49 +227,6 @@ export default function MapLatitude({
   }, []);
 
   const layers: any[] = [
-    (() => {
-      // Build colorRange expected by deck.gl HeatmapLayer: array of [r,g,b,a]
-      const palette = activePalette;
-      const heatColorRange = Array.isArray(palette)
-        ? palette.map((c: number[]) => [c[0], c[1], c[2], 255])
-        : [];
-      return new HeatmapLayer<DataPoint>({
-        data: (modelData as DataPoint[]) || [],
-        id: "heatmap-layer",
-        pickable: true,
-        getPosition: (d) => [d[0], d[1]],
-        getWeight: (d) => d[2],
-        radiusPixels,
-        intensity,
-        threshold,
-        // allow clicking on the heatmap to zoom to that location
-        onClick: (info: any) => {
-          if (!info || !info.coordinate || !Array.isArray(info.coordinate))
-            return true;
-          const coord = info.coordinate as number[];
-          if (coord.length < 2) return true;
-          const lon = coord[0];
-          const lat = coord[1];
-          setViewState((prev) => ({
-            ...prev,
-            longitude: lon,
-            latitude: lat,
-            zoom: Math.max((prev.zoom as number) ?? 1, 8),
-            transitionDuration: 1000,
-            transitionInterpolator: new FlyToInterpolator(),
-          }));
-          return true;
-        },
-        // colorRange typing is strict; cast at runtime after validation
-        colorRange: heatColorRange as unknown as any,
-        // show quiz flags when enabled (student mode) — either MapBar enabled or explicit student mapMode
-        onHover: makeHoverHandler((obj: any, info: any) => {
-          const lon = info?.coordinate?.[0] ?? obj[0] ?? NaN;
-          const lat = info?.coordinate?.[1] ?? obj[1] ?? NaN;
-          return { weight: obj[2], lon, lat };
-        }),
-      });
-    })(),
     new ScatterplotLayer<any>({
       id: "heat-dots",
       data: points,
@@ -325,12 +280,7 @@ export default function MapLatitude({
           const [r, g, b] = colorForValue(activePalette, t);
           // invert the color to get the 'opposite' color
           // use alpha=128 for ~50% transparency
-          return [
-            255 - Math.round(r),
-            255 - Math.round(g),
-            255 - Math.round(b),
-            100,
-          ];
+          return [255 - Math.round(r), 255 - Math.round(g), 255 - Math.round(b), 100];
         },
         getLineColor: () => [0, 0, 0, 255],
         lineWidthMinPixels: 1,
@@ -363,9 +313,8 @@ export default function MapLatitude({
         },
         radiusUnits: "pixels",
         getFillColor: () => {
-          // green halo (rgba) - subtle alpha so halo remains subtle
-          // Tailwind green-400 ~ rgb(52, 211, 153), green-500 ~ rgb(16,185,129)
-          return [34, 197, 94, 40];
+          // constant, small alpha so halo remains subtle
+          return [255, 200, 0, 40];
         },
         opacity: 1,
         onClick: (info: any) => {
@@ -383,12 +332,7 @@ export default function MapLatitude({
           }));
           const q = obj.question;
           console.log(q);
-          setActiveQuestion({
-            questionText: q.question,
-            options: q.options,
-            answer: q.answer,
-            image: q.image,
-          });
+          setActiveQuestion({ questionText: q.question, options: q.options, answer: q.answer, image: q.image });
           setQuizDialogOpen(true);
         },
         // use the silent handler so the halo shows pointer cursor but does not create tooltip content
@@ -403,11 +347,9 @@ export default function MapLatitude({
         pickable: true,
         // use the loaded Image element when available, otherwise fall back to URL
         iconAtlas: (iconImage as any) || (flagStudentIcon as any),
-        sizeUnits: "pixels",
+        sizeUnits: 'pixels',
         // use dynamic mapping when available
-        iconMapping: iconMapping || {
-          flag: { x: 0, y: 0, width: 64, height: 64, anchorY: 64, anchorX: 32 },
-        },
+        iconMapping: iconMapping || { flag: { x: 0, y: 0, width: 64, height: 64, anchorY: 64, anchorX: 32 } },
         getIcon: (_d: any) => "flag",
         sizeScale: 1,
         getSize: (_d: any) => {
@@ -434,11 +376,7 @@ export default function MapLatitude({
           }));
           // open dialog with the question
           const q = obj.question;
-          setActiveQuestion({
-            questionText: q.question,
-            options: q.options,
-            answer: q.answer,
-          });
+          setActiveQuestion({ questionText: q.question, options: q.options, answer: q.answer });
           setQuizDialogOpen(true);
         },
       })
@@ -652,94 +590,8 @@ export default function MapLatitude({
         onViewStateChange={(e: any) => setViewState(e.viewState)}
         layers={layers}
       >
-        <Map
-          reuseMaps
-          mapStyle={mapStyle}
-          mapLib={maplibregl as any}
-          attributionControl={false}
-          onLoad={handleMapLoad}
-        />
+        <Map reuseMaps mapStyle={mapStyle} mapLib={maplibregl as any} attributionControl={false} onLoad={handleMapLoad} />
       </DeckGL>
-{effectiveMapMode === "student" && quizData && (
-  <div className="absolute inset-0 pointer-events-none z-[50]">
-    {(Array.isArray(quizData) ? quizData : []).map((q, idx) => {
-      // transform map coordinates to screen pixels
-      if (!mapObj) return null;
-      const rawPoint = mapObj.project([q[0], q[1]]);
-      if (!rawPoint) return null;
-      // maplibre/map instances may return either an array [x,y] or an object {x,y}
-      let x: number | null = null;
-      let y: number | null = null;
-      if (Array.isArray(rawPoint) && rawPoint.length >= 2) {
-        x = Number(rawPoint[0]);
-        y = Number(rawPoint[1]);
-      } else if (typeof rawPoint === "object" && rawPoint !== null) {
-        // handle objects like { x: number, y: number }
-        // some map libs also provide {x, y} or Point instances with those props
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const rp: any = rawPoint;
-        if (typeof rp.x === "number" && typeof rp.y === "number") {
-          x = rp.x;
-          y = rp.y;
-        }
-      }
-      if (x === null || y === null || !Number.isFinite(x) || !Number.isFinite(y)) {
-        console.debug("[LatitudeMap] project did not return valid x/y for quiz point", rawPoint, q);
-        return null;
-      }
-
-      return (
-        <div
-          key={idx}
-          style={{
-            position: "absolute",
-            left: x - 24, // offset center
-            top: y - 24,
-            width: 48,
-            height: 48,
-          }}
-          className="flex items-center justify-center"
-        >
-          {/* main wave ripples */}
-          {[0, 1, 2].map((i) => (
-            <motion.div
-                key={i}
-                className="absolute rounded-full bg-green-400/40 blur-sm"
-              style={{
-                width: "100%",
-                height: "100%",
-              }}
-              animate={{
-                scale: [1, 2],
-                opacity: [0.8, 0],
-              }}
-              transition={{
-                duration: 2.4,
-                delay: i * 0.5,
-                repeat: Infinity,
-                ease: "easeOut",
-              }}
-            />
-          ))}
-
-          {/* small static center pulse */}
-          <motion.div
-            className="w-3 h-3 bg-green-500 rounded-full shadow-md"
-            animate={{
-              scale: [1, 1.3, 1],
-            }}
-            transition={{
-              duration: 1.2,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-          />
-        </div>
-      );
-    })}
-  </div>
-)}
-
 
       {tooltip && (
         <div
@@ -789,6 +641,19 @@ export default function MapLatitude({
         </button>
       </div>
 
+      
+
+      {/* Remove the depth slider and time controls - commenting out the entire sections */}
+      {/* 
+      <div className="absolute bottom-[15%] rotate-[270deg] right-1 z-2003 flex items-center">
+        ...depth slider removed...
+      </div>
+      
+      <div className="absolute left-12 right-12 bottom-2 z-2002 px-3 py-0 rounded-2xl text-black bg-zinc-400/60">
+        ...time controls removed...
+      </div>
+      */}
+      
       <Dialog
         open={quizDialogOpen}
         onClose={() => setQuizDialogOpen(false)}
