@@ -241,7 +241,7 @@ export default function MapLatitude({
       getRadius: (d: any) => {
         const weight = (d && d.weight) || 0;
         // Reduce base so halos are smaller overall; weight affects size but less aggressively
-        const base = 3 + Math.min(8, Math.max(0, weight / 4));
+        const base = 15 + Math.min(8, Math.max(0, weight / 4));
         // shrink with zoom: higher zoom -> smaller visual radius
         const z = (viewState && (viewState.zoom as number)) || 1;
         const zoomScale = Math.max(0.35, 1 / (Math.pow(2, Math.max(0, z - 3.5))));
