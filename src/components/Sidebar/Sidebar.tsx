@@ -12,9 +12,10 @@ import MapLatitude from "../maps/LatitudeMap";
 import { PredictSharkMovements } from "../../pages/PredictSharkMovement/PredictSharkMovementPage";
 import { ModelInfo } from "../../pages/PredictSharkMovement/components/ModelInfo";
 import { MeetTheTeam } from "./components/MeetTheTeam";
+import MeetTheTeamPage from "../../pages/MeetTheTeamPage";
 
 interface SidebarProps {
-  children?: React.ReactNode;
+  children?: ReMeetTheTeamact.ReactNode;
 }
 
 export type SidebarItemKey =
@@ -146,7 +147,7 @@ export const Sidebar = ({ children }: SidebarProps) => {
         case "tutorial":
           return <Tutorial />;
         case "meet-the-team":
-          return <MeetTheTeam />;
+          return <MeetTheTeamPage />;
         case "what-are-sharks-story":
           return <WhatAreSharks />;
         case "sharks-importance-story":
@@ -357,7 +358,7 @@ export const Sidebar = ({ children }: SidebarProps) => {
           <AnimatePresence mode="wait">
             <motion.div
               key={state.currentComponent ? "panel-custom" : "panel-default"}
-              className="w-full h-full"
+              className="w-full h-full overflow-hidden"
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
