@@ -136,7 +136,6 @@ export const Sidebar = ({ children }: SidebarProps) => {
     (item: SidebarItemKey, mapMode: "research" | "student"): React.ReactNode => {
       switch (item) {
         case "sharkmap":
-          // pass current mapMode into the map so it can react to mode changes
           return <MapLatitude mapMode={mapMode} />;
         case "knowledgehub-menu":
           return <KnowledgeHub />;
