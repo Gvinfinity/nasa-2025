@@ -14,6 +14,7 @@ type DataPoint = [number, number, number, number]; // [lon, lat, weight, depth]
 type ModelContextType = {
   modelData: DataPoint[] | null;
   visibleCoords: Array<[number, number]>;
+  loading: boolean;
   updateVisibleCoords: (coords: Array<[number, number]>) => void;
   monthIndex: number;
   setMonthIndex: (v: number) => void;
@@ -53,6 +54,7 @@ export const ModelDataProvider: React.FC<{ children: ReactNode }> = ({
     deltaClouds: 0,
     deltaOceanDepth: 0,
   });
+  const [loading, setLoading] = useState<boolean>(false);
 
   // Wrap setter to log updates (helps trace propagation from Sharkmap sliders)
   const _setDeltaGroup = useCallback((d: DeltaGroup) => {
@@ -65,6 +67,7 @@ export const ModelDataProvider: React.FC<{ children: ReactNode }> = ({
   const fetchModelData = useCallback(
     async (opts?: { year?: number; month?: number; depth?: number; coords?: number[][]; deltas?: any }) => {
       try {
+        setLoading(true);
         const year = opts?.year ?? START_YEAR + Math.floor(monthIndex / 12);
         const month = opts?.month ?? (monthIndex % 12) + 1;
               const requestedDepth = opts?.depth ?? depth;
@@ -144,10 +147,12 @@ export const ModelDataProvider: React.FC<{ children: ReactNode }> = ({
         }
 
         setModelData(tuples);
+        setLoading(false);
         return tuples;
       } catch (err) {
         console.error("fetchModelData failed", err);
         setModelData([]);
+        setLoading(false);
         return [];
       }
     },
@@ -182,6 +187,7 @@ export const ModelDataProvider: React.FC<{ children: ReactNode }> = ({
         modelData: modelData,
         visibleCoords,
         updateVisibleCoords,
+        loading,
         monthIndex,
         setMonthIndex,
         depth,

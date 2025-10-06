@@ -65,7 +65,7 @@ export default function MapLatitude({
   const effectiveMapMode = mapModeProp ?? "research";
 
   // Use ModelData context for monthIndex/depth and modelData
-  const { modelData, monthIndex, depth, updateVisibleCoords, fetchModelData, deltaGroup } = useModelData();
+  const { modelData, monthIndex, depth, updateVisibleCoords, fetchModelData, deltaGroup, loading } = useModelData();
   // month constants are managed by the ModelDataContext
 
   const { selectedView, colorblindMode } = usePalette();
@@ -670,8 +670,8 @@ export default function MapLatitude({
         }}
       />
 
-      {/* Loading overlay shown while modelData is not yet available */}
-      {modelData === null && (
+      {/* Loading overlay shown while modelData is not yet available or when provider is fetching */}
+      {(loading || modelData === null) && (
         <div className="absolute inset-0 z-[1005] flex items-center justify-center pointer-events-none">
           <div className="flex flex-col items-center gap-3 bg-black/60 text-white rounded-lg p-4 pointer-events-auto shadow-lg">
             <div className="w-10 h-10 border-4 border-white border-t-transparent rounded-full animate-spin" />
