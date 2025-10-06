@@ -133,10 +133,11 @@ export const Sidebar = ({ children }: SidebarProps) => {
   }, []);
 
   const getComponentForItem = useCallback(
-    (item: SidebarItemKey): React.ReactNode => {
+    (item: SidebarItemKey, mapMode: "research" | "student"): React.ReactNode => {
       switch (item) {
         case "sharkmap":
-          return <MapLatitude />;
+          // pass current mapMode into the map so it can react to mode changes
+          return <MapLatitude mapMode={mapMode} />;
         case "knowledgehub-menu":
           return <KnowledgeHub />;
         case "prediction-menu":
@@ -177,7 +178,9 @@ export const Sidebar = ({ children }: SidebarProps) => {
         return {
           ...prevState,
           currentItem: item,
-          currentComponent: getComponentForItem(item),
+          // create the component using the CURRENT mapMode from state so
+          // it gets the right prop at instantiation
+          currentComponent: getComponentForItem(item, prevState.mapMode),
           history: newHistory,
           visitedItems: newVisitedItems,
         };
@@ -218,7 +221,8 @@ export const Sidebar = ({ children }: SidebarProps) => {
       return {
         ...prevState,
         currentItem: previousItem,
-        currentComponent: getComponentForItem(previousItem),
+        // when going back, recreate the component with the current mapMode
+        currentComponent: getComponentForItem(previousItem, prevState.mapMode),
         history: newHistory,
       };
     });
@@ -254,6 +258,8 @@ export const Sidebar = ({ children }: SidebarProps) => {
     setState((prevState) => ({
       ...prevState,
       mapMode: mode,
+      // update the currently-stored component so it receives the new mapMode
+      currentComponent: getComponentForItem(prevState.currentItem, mode),
     }));
   }, []);
 

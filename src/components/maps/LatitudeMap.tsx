@@ -363,8 +363,9 @@ export default function MapLatitude({
         },
         radiusUnits: "pixels",
         getFillColor: () => {
-          // constant, small alpha so halo remains subtle
-          return [255, 200, 0, 40];
+          // green halo (rgba) - subtle alpha so halo remains subtle
+          // Tailwind green-400 ~ rgb(52, 211, 153), green-500 ~ rgb(16,185,129)
+          return [34, 197, 94, 40];
         },
         opacity: 1,
         onClick: (info: any) => {
@@ -660,13 +661,32 @@ export default function MapLatitude({
         />
       </DeckGL>
 {effectiveMapMode === "student" && quizData && (
-  <div className="absolute inset-0 pointer-events-none z-[1003]">
+  <div className="absolute inset-0 pointer-events-none z-[50]">
     {(Array.isArray(quizData) ? quizData : []).map((q, idx) => {
       // transform map coordinates to screen pixels
       if (!mapObj) return null;
-      const point = mapObj.project([q[0], q[1]]);
-      if (!point) return null;
-      const [x, y] = point;
+      const rawPoint = mapObj.project([q[0], q[1]]);
+      if (!rawPoint) return null;
+      // maplibre/map instances may return either an array [x,y] or an object {x,y}
+      let x: number | null = null;
+      let y: number | null = null;
+      if (Array.isArray(rawPoint) && rawPoint.length >= 2) {
+        x = Number(rawPoint[0]);
+        y = Number(rawPoint[1]);
+      } else if (typeof rawPoint === "object" && rawPoint !== null) {
+        // handle objects like { x: number, y: number }
+        // some map libs also provide {x, y} or Point instances with those props
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const rp: any = rawPoint;
+        if (typeof rp.x === "number" && typeof rp.y === "number") {
+          x = rp.x;
+          y = rp.y;
+        }
+      }
+      if (x === null || y === null || !Number.isFinite(x) || !Number.isFinite(y)) {
+        console.debug("[LatitudeMap] project did not return valid x/y for quiz point", rawPoint, q);
+        return null;
+      }
 
       return (
         <div
@@ -683,8 +703,8 @@ export default function MapLatitude({
           {/* main wave ripples */}
           {[0, 1, 2].map((i) => (
             <motion.div
-              key={i}
-              className="absolute rounded-full bg-blue-400/40 blur-sm"
+                key={i}
+                className="absolute rounded-full bg-green-400/40 blur-sm"
               style={{
                 width: "100%",
                 height: "100%",
@@ -704,7 +724,7 @@ export default function MapLatitude({
 
           {/* small static center pulse */}
           <motion.div
-            className="w-3 h-3 bg-blue-500 rounded-full shadow-md"
+            className="w-3 h-3 bg-green-500 rounded-full shadow-md"
             animate={{
               scale: [1, 1.3, 1],
             }}
