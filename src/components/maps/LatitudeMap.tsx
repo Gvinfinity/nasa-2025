@@ -769,19 +769,6 @@ export default function MapLatitude({
         </button>
       </div>
 
-      
-
-      {/* Remove the depth slider and time controls - commenting out the entire sections */}
-      {/* 
-      <div className="absolute bottom-[15%] rotate-[270deg] right-1 z-2003 flex items-center">
-        ...depth slider removed...
-      </div>
-      
-      <div className="absolute left-12 right-12 bottom-2 z-2002 px-3 py-0 rounded-2xl text-black bg-zinc-400/60">
-        ...time controls removed...
-      </div>
-      */}
-
       <Dialog
         open={quizDialogOpen}
         onClose={() => setQuizDialogOpen(false)}
