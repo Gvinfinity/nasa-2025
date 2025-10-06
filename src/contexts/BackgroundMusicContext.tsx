@@ -1,4 +1,5 @@
 import { useState, useContext, createContext } from "react";
+import audioFile from "../assets/audio.mp3";
 
 interface BackgroundMusicContextProps {
   playBackground: (loop?: boolean) => void;
@@ -23,16 +24,20 @@ export const BackgroundMusicProvider: React.FC<{
       audio.pause();
     }
 
-    const newAudio = new Audio("src/assets/audio.mp3");
-    newAudio.loop = loop;
-    newAudio.volume = 0.3; // Lower volume for background music
+    try {
+      const newAudio = new Audio(audioFile);
+      newAudio.loop = loop;
+      newAudio.volume = 0.3; // Lower volume for background music
 
-    newAudio.onplay = () => setIsBackgroundPlaying(true);
-    newAudio.onpause = () => setIsBackgroundPlaying(false);
-    newAudio.onended = () => setIsBackgroundPlaying(false);
+      newAudio.onplay = () => setIsBackgroundPlaying(true);
+      newAudio.onpause = () => setIsBackgroundPlaying(false);
+      newAudio.onended = () => setIsBackgroundPlaying(false);
 
-    newAudio.play().catch(console.error);
-    setAudio(newAudio);
+      newAudio.play().catch(console.error);
+      setAudio(newAudio);
+    } catch (error: unknown) {
+      console.error("Error loading audio file:", error);
+    }
   };
 
   const stopBackground = () => {
