@@ -6,6 +6,7 @@ import { useSliderProvider } from "../../../../../../../contexts/SliderContext";
 import TextWithSpeech from "../../../../TextWithSpeech";
 import { useSidebarContext } from "../../../../../../Sidebar/Sidebar";
 import { StoriesMenu } from "../../StoriesMenu";
+import img from "../../../../../../../assets/shark-importance.webp";
 
 const Slide3: React.FC = () => {
   const { prevSlide } = useSliderProvider();
@@ -27,7 +28,7 @@ const Slide3: React.FC = () => {
           transition={{ duration: 1, delay: 0.5 }}
         >
           <motion.img
-            src="src/assets/shark-importance.webp"
+            src={img}
             alt="Sharks in ocean"
             className="w-full object-cover rounded-lg mb-6"
             initial={{ opacity: 0, scale: 0.8 }}

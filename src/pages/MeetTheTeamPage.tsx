@@ -9,38 +9,32 @@ const MeetTheTeamPage: React.FC = () => {
     {
       id: 1,
       name: "Gabriel Vinícius dos Santos Soares",
-      role: "Team Owner",
-      bio: "Project leader coordinating the team efforts.",
+      role: "Developer and Data Scientist",
     },
     {
       id: 2,
       name: "Thales Paulilo Scarpato",
-      role: "Team Member",
-      bio: "Developer contributing to the project success.",
+      role: "Reasearcher and Data Scientist",
     },
     {
       id: 3,
       name: "Giulliano Melo Teixeira",
-      role: "Team Member",
-      bio: "Developer working on innovative solutions.",
+      role: "Reasearcher and Designer",
     },
     {
       id: 4,
       name: "Milena Furuta Shishito",
-      role: "Team Member",
-      bio: "Developer focused on technical implementation.",
+      role: "Developer and Designer",
     },
     {
       id: 5,
       name: "Heitor Leite de Almeida",
-      role: "Team Member",
-      bio: "Developer bringing creative solutions to the team.",
+      role: "Developer and Data Scientist",
     },
     {
       id: 6,
       name: "João Vítor Albuquerque Mafra",
-      role: "Team Member",
-      bio: "Developer contributing to the project development.",
+      role: "Reasearcher and Designer",
     },
   ];
 
@@ -107,9 +101,7 @@ const MeetTheTeamPage: React.FC = () => {
                   <p className="text-cyan-300 font-medium mb-3 text-sm">
                     {member.role}
                   </p>
-                  <p className="text-sm text-white/70 leading-relaxed">
-                    {member.bio}
-                  </p>
+                  <p className="text-sm text-white/70 leading-relaxed"></p>
                 </motion.div>
               );
             })}

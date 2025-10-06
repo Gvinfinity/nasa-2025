@@ -4,6 +4,7 @@ import Lottie from "lottie-react";
 import { useNavigate } from "react-router-dom";
 import logo from "../assets/logo.svg";
 import oceanAnimation from "../assets/intro/ocean.json";
+import sharkLogo from "../assets/sharko_new.png";
 import { SliderProvider, useSliderProvider } from "../contexts/SliderContext";
 import { useBackgroundMusic } from "../contexts/BackgroundMusicContext";
 
@@ -82,7 +83,9 @@ const backgroundVariants = {
   },
 };
 
-const Intro1: React.FC = () => {
+const Intro1: React.FC<{ setShowLogo: (show: boolean) => void }> = ({
+  setShowLogo,
+}) => {
   const { nextSlide } = useSliderProvider();
   const { playBackground } = useBackgroundMusic();
 
@@ -90,6 +93,7 @@ const Intro1: React.FC = () => {
     console.log("Start button clicked!");
     nextSlide();
     playBackground();
+    setShowLogo(false);
   };
 
   return (
@@ -710,7 +714,7 @@ const Intro7: React.FC = () => {
       >
         <div className="w-[clamp(24rem,70vw,40rem)] h-[clamp(18rem,50vw,30rem)] rounded-lg overflow-hidden ">
           <img
-            src="src/assets/sharko_new.png"
+            src={sharkLogo}
             alt="Shark Research"
             className="w-full h-full object-cover"
           />
@@ -729,18 +733,14 @@ const Intro7: React.FC = () => {
         >
           Let's Go!
         </button>
-        <button
-          className="w-full sm:w-auto px-[clamp(1rem,3vw,2rem)] py-[clamp(0.5rem,2vw,1rem)] text-[clamp(0.875rem,3.5vw,1.125rem)] font-semibold rounded-full border border-blue-400 text-blue-100 hover:bg-blue-500/20 hover:scale-105 transition-all"
-          onClick={() => navigate("/home")}
-        >
-          Skip
-        </button>
       </motion.div>
     </div>
   );
 };
 
 const Cover: React.FC = () => {
+  const [showLogo, setShowLogo] = React.useState(true);
+
   return (
     <div className="relative min-h-screen flex items-center justify-center overflow-hidden bg-black">
       {/* 🌊 Deep Ocean Animated Gradient */}
@@ -772,18 +772,20 @@ const Cover: React.FC = () => {
       />
 
       {/* 🏷️ Developers Logo */}
-      <motion.div
-        className="absolute top-6 sm:top-8 lg:top-12 opacity-100 z-20"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 1, delay: 0.3 }}
-      >
-        <img
-          src={logo}
-          alt="Developers Logo"
-          className="h-8 sm:h-10 lg:h-12 w-auto"
-        />
-      </motion.div>
+      {showLogo && (
+        <motion.div
+          className="absolute top-6 sm:top-8 lg:top-12 opacity-100 z-20"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1, delay: 0.3 }}
+        >
+          <img
+            src={logo}
+            alt="Developers Logo"
+            className="h-8 sm:h-10 lg:h-12 w-auto"
+          />
+        </motion.div>
+      )}
 
       {/* 🫧 Floating Bubbles */}
       {[...Array(30)].map((_, i) => (
@@ -810,7 +812,7 @@ const Cover: React.FC = () => {
 
       {/* 💎 Content with Enhanced Transitions */}
       <SliderProvider>
-        <Intro1 key="intro1" />
+        <Intro1 key="intro1" setShowLogo={setShowLogo} />
         <Intro2 key="intro2" />
         <Intro3 key="intro3" />
         <Intro5 key="intro5" />
