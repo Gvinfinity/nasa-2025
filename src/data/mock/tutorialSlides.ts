@@ -95,8 +95,8 @@ Take a look at our sources in the *NASA Space Apps Challenge website*.`,
     action: () => {
       // pulse near the sidebar area where the SharkMap controls live
       const halo = createPulseHalo({
-        id: "accessibility-options-menu",
-        target: "#accesibility-options-menu",
+        id: "sharkmap-accessibility-toggle",
+        target: "#sharkmap-accessibility-toggle",
         size: 140,
         color: "rgba(99,102,241,0.9)",
         duration: 1.4,
@@ -113,8 +113,9 @@ Take a look at our sources in the *NASA Space Apps Challenge website*.`,
     action: () => {
       // pulse near the sidebar area where the SharkMap controls live
       const halo = createPulseHalo({
-        id: "sharkmap-accessibility-toggle",
-        target: "#sharkmap-accessibility-toggle",
+        id: "our-tool",
+        // anchor to the map legend element so the halo tracks layout changes
+        target: "#our-tool",
         size: 140,
         color: "rgba(99,102,241,0.9)",
         duration: 1.4,

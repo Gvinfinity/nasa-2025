@@ -65,23 +65,27 @@ export const ModelDataProvider: React.FC<{ children: ReactNode }> = ({
   const fetchModelData = useCallback(
     async (opts?: { year?: number; month?: number; depth?: number; coords?: number[][]; deltas?: any }) => {
       try {
-  const year = opts?.year ?? START_YEAR + Math.floor(monthIndex / 12);
-  const month = opts?.month ?? (monthIndex % 12) + 1;
-        const requestedDepth = opts?.depth ?? depth;
-  // prefer explicit coords passed by caller; otherwise use the
-  // last known visibleCoords sampled by the map. This ensures the
-  // provider won't call the API with an empty coords array.
-  const coords = opts?.coords ?? visibleCoords;
-  // construct full ISO datetime (first day of month at midnight UTC) accepted by Python datetime
-  const date = `${year.toString().padStart(4, '0')}-${month
-    .toString()
-    .padStart(2, '0')}-01T00:00:00Z`;
+        const year = opts?.year ?? START_YEAR + Math.floor(monthIndex / 12);
+        const month = opts?.month ?? (monthIndex % 12) + 1;
+              const requestedDepth = opts?.depth ?? depth;
+        // prefer explicit coords passed by caller; otherwise use the
+        // last known visibleCoords sampled by the map. This ensures the
+        // provider won't call the API with an empty coords array.
+        const coords = opts?.coords ?? visibleCoords;
 
-        let tuples: DataPoint[] = [];
+        // construct full ISO datetime (first day of month at midnight UTC) accepted by Python datetime
+        const date = `${year.toString().padStart(4, '0')}-${month
+          .toString()
+          .padStart(2, '0')}-01T00:00:00Z`;
+
+              let tuples: DataPoint[] = [];
 
         try {
           // ensure we have coordinates to send; server returns 400 when none
-          const coordsToSend = coords ?? [];
+          
+
+          const coordsToSend = coords;
+
           if (!coordsToSend || coordsToSend.length === 0) {
             console.debug('[ModelDataContext] no coords available - skipping API call');
             setModelData([]);
@@ -154,16 +158,13 @@ export const ModelDataProvider: React.FC<{ children: ReactNode }> = ({
   // but only when we have visible coords from the map. This avoids
   // sending an empty coords array to the backend on initial mount.
   useEffect(() => {
-    if (!visibleCoords || visibleCoords.length === 0) {
-      console.debug('[ModelDataContext] visibleCoords empty - skipping auto fetch');
-      return;
-    }
+    const defaltCoords = getLatLonCoords();
     // derive year/month
     const year = START_YEAR + Math.floor(monthIndex / 12);
     const month = (monthIndex % 12) + 1;
     // include current deltaGroup so slider-driven changes trigger a full refetch
-    void fetchModelData({ year, month, depth, deltas: deltaGroup, coords: visibleCoords });
-  }, [monthIndex, depth, selectedView, fetchModelData, visibleCoords, deltaGroup]);
+    void fetchModelData({ year, month, depth, deltas: deltaGroup, coords: defaltCoords });
+  }, [monthIndex, depth, selectedView, fetchModelData, deltaGroup]);
 
   const updateVisibleCoords = useCallback((coords: Array<[number, number]>) => {
     setVisibleCoords(coords);
@@ -194,6 +195,304 @@ export const ModelDataProvider: React.FC<{ children: ReactNode }> = ({
     </ModelDataContext.Provider>
   );
 };
+
+const getLatLonCoords = () => {
+  const latitudes = Array(281).fill(0).map((_, i) => -70 + i / 2);
+  const longitudes = Array(251).fill(0).map((_, i) => -100 + i / 2);
+
+  console.log('latitudes', latitudes)
+  const coords = latitudes.flatMap((lat) => {
+    const combinations = longitudes.map((lon) => [lon,lat]);
+
+    return combinations
+  })
+
+  return coords;
+}
+
+// const aggregatePoints = () => {
+//   const freeZone = [
+//     [-35.722043, -76.632797],
+//     [-22.045760, -73.037875],
+//     [-11.853743, -79.720994],
+//     [4.654758, -82.157878],
+//     [17.468727, -107.536686],
+//     [28.347414, -85.545737],
+//     [34.195506, -75.371206],
+//     [13.807854, -64.773424],
+//     [3.994784, -46.892608],
+//     [-7.565940, -31.776830],
+//     [-23.506177, -39.315641],
+//     [-36.370607, -52.348186],
+//     [40.449024, -67.931416],
+//     [55.445083, -48.955977],
+//     [55.023848, -12.520895],
+//     [46.166846, -31.862449],
+//     [37.341664, -10.734173],
+//     [32.163831, -40.654228],
+//     [31.365778, -16.253585],
+//     [20.016229, -41.625494],
+//     [16.699318, -21.174584],
+//     [6.820932, -30.634833],
+//     [3.806339, -11.385403],
+//     [1.190498, 4.225133],
+//     [-6.053715, 8.191291],
+//     [-18.450209, 7.684075],
+//     [-34.544063, 10.828603],
+//     [-28.517178, -15.241603],
+//     [-45.074065, -17.113540],
+//     [38.249232, 1.688369],
+//     [31.566701, 18.559420],
+//     [39.388265, 18.926371],
+//     [36.584043, 25.935153],
+//   ];
+
+//   const landZone = [
+//     [-16.327265, -55.411455],
+//     [-37.961141, -66.277328],
+//     [40.180892, -68.517595],
+//     [46.939684, -69.261486],
+//     [18.599059, -65.404659],
+//     [-7.393596, -51.397591],
+//     [-1.151521, -58.746973],
+//     [-1.227447, -65.735658],
+//     [4.371076, -69.997533],
+//     [22.676201, -102.090551],
+//     [32.619657, -104.079448],
+//     [35.831120, -94.428648],
+//   ]
+
+
+//   const freeZoneLonLat = freeZone.map((zone) => [zone[1], zone[0]]);
+//   const landZoneLonLat = landZone.map((zone) => [zone[1], zone[0]]);
+
+//   const view1 = freeZoneLonLat;
+//   const max_points = {
+//     2: 100,
+//     3: 150,
+//     4: 200,
+//     5: 500
+//   }
+
+  
+// }
+
+export const aggregatePoints = () => {
+  const freeZone = [
+    [-35.722043, -76.632797],
+    [-22.045760, -73.037875],
+    [-11.853743, -79.720994],
+    [4.654758, -82.157878],
+    [17.468727, -107.536686],
+    [28.347414, -85.545737],
+    [34.195506, -75.371206],
+    [13.807854, -64.773424],
+    [3.994784, -46.892608],
+    [-7.565940, -31.776830],
+    [-23.506177, -39.315641],
+    [-36.370607, -52.348186],
+    [40.449024, -67.931416],
+    [55.445083, -48.955977],
+    [55.023848, -12.520895],
+    [46.166846, -31.862449],
+    [37.341664, -10.734173],
+    [32.163831, -40.654228],
+    [31.365778, -16.253585],
+    [20.016229, -41.625494],
+    [16.699318, -21.174584],
+    [6.820932, -30.634833],
+    [3.806339, -11.385403],
+    [1.190498, 4.225133],
+    [-6.053715, 8.191291],
+    [-18.450209, 7.684075],
+    [-34.544063, 10.828603],
+    [-28.517178, -15.241603],
+    [-45.074065, -17.113540],
+    [38.249232, 1.688369],
+    [31.566701, 18.559420],
+    [39.388265, 18.926371],
+    [36.584043, 25.935153],
+  ];
+  
+  const landZone = [
+    [-16.327265, -55.411455],
+    [-37.961141, -66.277328],
+    [40.180892, -68.517595],
+    [46.939684, -69.261486],
+    [18.599059, -65.404659],
+    [-7.393596, -51.397591],
+    [-1.151521, -58.746973],
+    [-1.227447, -65.735658],
+    [4.371076, -69.997533],
+    [22.676201, -102.090551],
+    [32.619657, -104.079448],
+    [35.831120, -94.428648],
+  ];
+  
+  const freeZoneLonLat = freeZone.map((zone) => [zone[1], zone[0]]);
+  const landZoneLonLat = landZone.map((zone) => [zone[1], zone[0]]);
+  
+  const max_points = {
+    2: 100,
+    3: 150,
+  };
+  
+  // Helper function to calculate distance between two points
+  const distance = (p1, p2) => {
+    const dx = p1[0] - p2[0];
+    const dy = p1[1] - p2[1];
+    return Math.sqrt(dx * dx + dy * dy);
+  };
+  
+  // Helper function to check if a point is too close to land
+  const isTooCloseToLand = (point, minDistance = 3) => {
+    return landZoneLonLat.some(landPoint => distance(point, landPoint) < minDistance);
+  };
+  
+  // Helper function to check if a point is too close to existing points
+  const isTooCloseToExisting = (point, existingPoints, minDistance = 2) => {
+    return existingPoints.some(existing => distance(point, existing) < minDistance);
+  };
+  
+  // Interpolate between two points
+  const interpolate = (p1, p2, t) => {
+    return [
+      p1[0] + (p2[0] - p1[0]) * t,
+      p1[1] + (p2[1] - p1[1]) * t
+    ];
+  };
+  
+  // Generate points for a given view level
+  const generatePointsForView = (view: number) => {
+    if (view < 2) {
+      return freeZoneLonLat;
+    }
+    
+    // @ts-ignore
+    const targetCount = max_points[view] || max_points[5];
+    const result = [...freeZoneLonLat];
+    const attempts = targetCount * 10; // Max attempts to avoid infinite loops
+    
+    for (let i = 0; i < attempts && result.length < targetCount; i++) {
+      let newPoint;
+      
+      // Strategy 1: Interpolate between two random existing points (70% of time)
+      if (Math.random() < 0.7) {
+        const idx1 = Math.floor(Math.random() * result.length);
+        const idx2 = Math.floor(Math.random() * result.length);
+        if (idx1 !== idx2) {
+          const t = 0.3 + Math.random() * 0.4; // Interpolate between 30% and 70%
+          newPoint = interpolate(result[idx1], result[idx2], t);
+        } else {
+          continue;
+        }
+      } 
+      // Strategy 2: Create points in ocean regions with some randomness (30% of time)
+      else {
+        const baseIdx = Math.floor(Math.random() * result.length);
+        const basePoint = result[baseIdx];
+        const offset = 5 + Math.random() * 10; // Random offset
+        const angle = Math.random() * 2 * Math.PI;
+        newPoint = [
+          basePoint[0] + offset * Math.cos(angle),
+          basePoint[1] + offset * Math.sin(angle)
+        ];
+      }
+      
+      // Validate the new point
+      const minLandDist = view >= 4 ? 5 : 3; // Stricter for higher zoom
+      const minPointDist = view >= 4 ? 1.5 : 2;
+      
+      if (!isTooCloseToLand(newPoint, minLandDist) && 
+          !isTooCloseToExisting(newPoint, result, minPointDist)) {
+        result.push(newPoint);
+      }
+    }
+    
+    return result;
+  };
+  
+  // Return a function that can be called with different view levels
+  return (view) => {
+    if (view < 2) {
+      return freeZoneLonLat;
+    }
+    return generatePointsForView(Math.floor(view));
+  };
+};
+
+export const aggregateWeights = (pointsView: any[], pointsRaw:any[], searchRadius = 10) => {
+  const distance = (p1, p2) => {
+    const dx = p1[0] - p2[0];
+    const dy = p1[1] - p2[1];
+    return Math.sqrt(dx * dx + dy * dy);
+  };
+  
+  const result = [];
+
+
+  // For each point in pointsView
+  for (let i = 0; i < pointsView.length; i++) {
+    const viewPoint = pointsView[i];
+    let maxWeight = 0;
+    let closestDistance = Infinity;
+    
+    // Find all pointsRaw within searchRadius and get their weights
+    const nearbyWeights = [];
+    
+    for (let j = 0; j < pointsRaw.length; j++) {
+      const rawPoint = pointsRaw[j];
+      const dist = distance(
+        [viewPoint[0], viewPoint[1]], 
+        [rawPoint[0], rawPoint[1]]
+      );
+      
+      // If within search radius, consider this point
+      if (dist <= searchRadius) {
+        nearbyWeights.push({
+          weight: rawPoint[2], // The weight is in index 2
+          distance: dist
+        });
+        
+        if (dist < closestDistance) {
+          closestDistance = dist;
+        }
+      }
+    }
+    
+    // Get the maximum weight from nearby points
+    if (nearbyWeights.length > 0) {
+      maxWeight = Math.max(...nearbyWeights.map(p => p.weight));
+    } else {
+      // If no points within radius, find the absolute closest point
+      let closestWeight = 0;
+      let minDist = Infinity;
+      
+      for (let j = 0; j < pointsRaw.length; j++) {
+        const rawPoint = pointsRaw[j];
+        const dist = distance(
+          [viewPoint[0], viewPoint[1]], 
+          [rawPoint[0], rawPoint[1]]
+        );
+        
+        if (dist < minDist) {
+          minDist = dist;
+          closestWeight = rawPoint[2];
+        }
+      }
+      
+      maxWeight = closestWeight;
+    }
+    
+    // Create the weighted point in format [lon, lat, weight, 0]
+    result.push([viewPoint[0], viewPoint[1], maxWeight, 0]);
+  }
+  
+  return result;
+};
+
+// Usage example:
+
 
 export function useModelData() {
   const ctx = useContext(ModelDataContext);
