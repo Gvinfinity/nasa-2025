@@ -15,7 +15,7 @@ import { MeetTheTeam } from "./components/MeetTheTeam";
 import MeetTheTeamPage from "../../pages/MeetTheTeamPage";
 
 interface SidebarProps {
-  children?: ReMeetTheTeamact.ReactNode;
+  children?: React.ReactNode;
 }
 
 export type SidebarItemKey =
