@@ -745,7 +745,7 @@ export default function MapLatitude({
         <div className="absolute inset-0 z-[1005] flex items-center justify-center pointer-events-none">
           <div className="flex flex-col items-center gap-3 bg-black/60 text-white rounded-lg p-4 pointer-events-auto shadow-lg">
             <div className="w-10 h-10 border-4 border-white border-t-transparent rounded-full animate-spin" />
-            <div className="text-sm">Loading data…</div>
+            <div className="text-sm">Predicting from data…</div>
           </div>
         </div>
       )}
